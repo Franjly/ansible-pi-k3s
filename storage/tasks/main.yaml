@@ -1,0 +1,36 @@
+---
+- name: Check {{ storage.mountpoint }} mountpoint exist
+  become: yes
+  file:
+    path: '{{ storage.mountpoint }}'
+    state: directory
+    owner: root
+    group: root
+
+- name: Check {{ storage.nfs }}/{{ inventory_hostname }} nfs is mounted
+  become: yes
+  shell: 'sudo mount -l | grep {{ storage.nfs }}/{{ inventory_hostname }} | wc -l'
+  register: data_nfs_is_mounted
+
+- name: Mount {{ storage.nfs }}/{{ inventory_hostname }} network share
+  become: yes
+  command: 'sudo mount -t {{ storage.type }} -O {{ storage.opts }} {{ storage.nfs }}/{{ inventory_hostname }} {{ storage.mountpoint }}'
+  when: data_nfs_is_mounted.stdout == "0"
+
+- name: Check if /data is already defined on fstab
+  become: yes
+  lineinfile:
+    state: absent
+    path: '/etc/fstab'
+    regexp: "^{{ storage.nfs }}/{{ inventory_hostname }}"
+  check_mode: true
+  changed_when: false
+  register: check
+
+- name: Add /data partition in fstab on {{ storage.mountpoint }}/{{ inventory_hostname }} if undefined
+  become: yes
+  lineinfile:
+    state: present
+    path: '/etc/fstab'
+    line: '{{ storage.nfs }}/{{ inventory_hostname }} {{ storage.mountpoint }}       {{ storage.type }}     defaults,proto=tcp,noatime      0       3'
+  when: check.found == 0

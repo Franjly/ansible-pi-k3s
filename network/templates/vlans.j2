@@ -1,0 +1,9 @@
+#Network
+auto {{ network.interface }}.{{ network.vlan.network.id }}
+iface {{ network.interface }}.{{ network.vlan.network.id }} inet manual
+  vlan-raw-device {{ network.interface }}
+
+#IoT
+auto {{ network.interface }}.{{ network.vlan.IoT.id }}
+iface {{ network.interface }}.{{ network.vlan.IoT.id }} inet manual
+  vlan-raw-device {{ network.interface }}

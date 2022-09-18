@@ -1,0 +1,18 @@
+---
+network:
+  interface: eth0
+  gateway: 192.168.30.1
+  vlan:
+    network:
+      id: 40
+      prefix_ip_address: 192.168.40.2
+      gateway: 192.168.40.1
+    IoT:
+      id: 60
+      prefix_ip_address: 192.168.60.2
+      gateway: 192.168.60.1
+  dns_nameservers:
+    - "192.168.40.254"
+    - "1.1.1.1"
+    - "8.8.8.8"
+

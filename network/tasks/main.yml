@@ -1,0 +1,23 @@
+---
+- name: Set DNS configuration
+  become: yes
+  template:
+    src: "templates/resolv.conf.j2"
+    dest: "/etc/resolv.conf"
+    mode: 0644
+
+- name: Set VLAN configuration
+  become: yes
+  template:
+    src: "templates/vlans.j2"
+    dest: "/etc/network/interfaces.d/vlans"
+    mode: 0644
+
+- name: Set DHCP configuration
+  become: yes
+  template:
+    src: "templates/dhcpcd.conf.j2"
+    dest: "/etc/dhcpcd.conf"
+    mode: 0644
+  notify:
+    - restart network

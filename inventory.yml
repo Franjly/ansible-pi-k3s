@@ -1,0 +1,25 @@
+---
+all:
+  vars:
+    ssh_admin_key: ~/.ssh/id_rsa.pub
+    k3s_api_server_host: 192.168.30.10
+  children:
+    master:
+      hosts:
+        pi-kube-master-0:
+          ansible_host: 192.168.30.10
+          ansible_user: pi-k3s
+          serial_id: 2f873657
+        # pi-kube-master-1:
+        #   ansible_host: 192.168.30.11
+        #   ansible_user: pi-k3s
+    workers:
+      hosts:
+        pi-kube-worker-0:
+          ansible_host: 192.168.30.20
+          ansible_user: pi-k3s
+          serial_id: 1e5fec2d
+        pi-kube-worker-1:
+          ansible_host: 192.168.30.21
+          ansible_user: pi-k3s
+          serial_id: fabce213
