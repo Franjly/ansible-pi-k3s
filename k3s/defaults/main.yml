@@ -1,0 +1,14 @@
+---
+k3s_master:
+  hostname: pi-kube-master-0
+  ip: 192.168.30.10
+  flags:
+  - --no-deploy servicelb
+  - --no-deploy traefik
+  - --node-taint k3s-controlplane=true:NoExecute
+
+k3s_worker:
+  flags:
+  - --node-label kubernetes.io/role=worker
+
+k3s_version: ''

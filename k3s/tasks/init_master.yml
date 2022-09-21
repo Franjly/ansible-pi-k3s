@@ -1,0 +1,31 @@
+---
+- name: Install k3s
+  shell: curl -sfL https://get.k3s.io | sh -
+  environment:
+    INSTALL_K3S_VERSION: '{{ k3s_version }}'
+    K3S_KUBECONFIG_MODE: '600'
+    INSTALL_K3S_EXEC: "{{ k3s_master.flags | join(' ') }}"
+  register: k3s_server_install
+
+- debug: msg="{{ k3s_server_install.stdout_lines }}"
+- debug: msg="{{ k3s_server_install.stderr_lines }}"
+
+- name: Get join token
+  become: yes
+  slurp:
+    src: '/var/lib/rancher/k3s/server/node-token'
+  register: k3s_node_token_encoded
+
+- name: Get kube config
+  become: yes
+  fetch:
+    src: '/etc/rancher/k3s/k3s.yaml'
+    dest: '~/.kube/config'
+    flat: yes
+
+- name: Set IP on kube config
+  replace:
+    path: '~/.kube/config'
+    regexp: '127\.0\.0\.1'
+    replace: "{{ k3s_api_server_host }}"
+  delegate_to: localhost
