@@ -1,0 +1,57 @@
+---
+- name: Add kubernetes-dashboard Helm repository
+  kubernetes.core.helm_repository:
+    name: "{{ kubernetesDashboard.helm.repo_name }}"
+    repo_url: "{{ kubernetesDashboard.helm.repo_url }}"
+  delegate_to: localhost
+
+- name: Create kubernetes-dashboard values file
+  template:
+    src: "templates/kubernetes-dashboard_values.yaml.j2"
+    dest: "{{playbook_dir}}/k3s-base-apps/files/kubernetes-dashboard_values.yaml"
+    mode: 0644
+  delegate_to: localhost
+
+- name: Create "{{ kubernetesDashboard.namespace }}" namespace
+  k8s:
+    name: "{{ kubernetesDashboard.namespace }}"
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+
+- name: Deploy latest version of kubernetes-dashboard chart inside "{{ kubernetesDashboard.namespace }}" namespace
+  kubernetes.core.helm:
+    name: "{{ kubernetesDashboard.helm.chart_name }}"
+    chart_ref: "{{ kubernetesDashboard.helm.chart_ref }}"
+    release_namespace: "{{ kubernetesDashboard.namespace }}"
+    update_repo_cache: true
+    values_files:
+      - "{{playbook_dir}}/k3s-base-apps/files/kubernetes-dashboard_values.yaml"
+  delegate_to: localhost
+
+- name: Create kubernetes-dashboard admin user file
+  template:
+    src: "templates/kubernetes-dashboard_user.yaml.j2"
+    dest: "{{playbook_dir}}/k3s-base-apps/files/kubernetes-dashboard_user.yaml"
+    mode: 0644
+  delegate_to: localhost
+
+- name: Apply kubernetes-dashboard admin user file.
+  k8s:
+    state: present
+    src: "{{playbook_dir}}/k3s-base-apps/files/kubernetes-dashboard_user.yaml"
+  delegate_to: localhost
+
+- name: Show dashborad URL
+  shell: "kubectl get ingress -A | grep kubernetes-dashboard | tr -s ' ' | cut -d' ' -f4"
+  register: dashboardURL
+  delegate_to: localhost
+
+- debug: var=dashboardURL.stdout
+
+- name: Show dashborad-admin token
+  shell: "kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep dashboard-admin | awk '{print $1}') | grep token:"
+  register: dashboardAdminToken
+  delegate_to: localhost
+
+- debug: var=dashboardAdminToken.stdout

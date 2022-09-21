@@ -1,0 +1,12 @@
+---
+- include: metallb.yaml
+  run_once: true
+
+- include: ingress_nginx.yaml
+  run_once: true
+
+- include: cert_manager.yaml
+  run_once: true
+
+- include: kubernetes_dashboard.yaml
+  run_once: true

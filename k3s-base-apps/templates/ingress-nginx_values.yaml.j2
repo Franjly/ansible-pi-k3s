@@ -1,0 +1,7 @@
+## nginx configuration
+## Ref: https://github.com/kubernetes/ingress-nginx/blob/main/docs/user-guide/nginx-configuration/index.md
+##
+
+controller:
+  service:
+    loadBalancerIP: "{{ ingressNginx.config.controller.service.loadBalancerIP }}"

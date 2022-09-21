@@ -1,0 +1,25 @@
+{% for pool in metalLB.pools %}
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: {{ pool.name }}
+  namespace: {{ metalLB.namespace }}
+spec:
+  addresses:
+{% for address in pool.addresses %}
+  - {{ address }}
+{% endfor %}
+  autoAssign: {{ pool.autoAssign }}
+{% endfor %}
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2-advertisement
+  namespace: {{ metalLB.namespace }}
+spec:
+  ipAddressPools:
+{% for pool in metalLB.pools %}
+  - {{ pool.name }}
+{% endfor %}

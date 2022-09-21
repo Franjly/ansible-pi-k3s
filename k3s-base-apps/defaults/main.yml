@@ -1,0 +1,75 @@
+---
+metalLB:
+  namespace: metallb-system
+  helm:
+    repo_name: metallb
+    repo_url: https://metallb.github.io/metallb
+    chart_name: metallb
+    chart_ref: metallb/metallb
+    version: 
+  pools:
+    - name: k3s
+      protocol: layer2
+      addresses:
+      - 192.168.30.201-192.168.30.254
+      autoAssign: false
+    - name: network
+      protocol: layer2
+      addresses:
+      - 192.168.40.200-192.168.40.254
+      autoAssign: false
+    - name: iot
+      protocol: layer2
+      addresses:
+      - 192.168.60.201-192.168.60.254
+      autoAssign: false
+
+ingressNginx:
+  namespace: ingress-nginx
+  helm:
+    repo_name: ingress-nginx
+    repo_url: https://kubernetes.github.io/ingress-nginx
+    chart_name: ingress-nginx
+    chart_ref: ingress-nginx/ingress-nginx
+    version: 
+  config:
+    controller:
+      service:
+        loadBalancerIP: 192.168.40.200
+
+certManager:
+  namespace: cert-manager
+  helm:
+    repo_name: jetstack
+    repo_url: https://charts.jetstack.io
+    chart_name: cert-manager
+    chart_ref: jetstack/cert-manager
+    version: 
+  version: 1.9.1
+  issuers:
+    - name: letsencrypt-prod
+      server: https://acme-v02.api.letsencrypt.org/directory
+      email: franjly.tools@gmail.com
+    - name: letsencrypt-staging
+      server: https://acme-staging-v02.api.letsencrypt.org/directory
+      email: franjly.tools@gmail.com
+
+kubernetesDashboard:
+  namespace: kubernetes-dashboard
+  helm:
+    repo_name: kubernetes-dashboard
+    repo_url: https://kubernetes.github.io/dashboard/
+    chart_name: kubernetes-dashboard
+    chart_ref: kubernetes-dashboard/kubernetes-dashboard
+    version: 
+  config:
+    ingress:
+      enabled: true
+      annotations:
+        issuer: letsencrypt-staging
+      host: kubernetes-dashboard.192.168.40.200.nip.io
+      tls:
+        secret_name: kubernetes-dashboard-tls
+  rbac:
+    user: dashboard-admin
+    role: cluster-admin
