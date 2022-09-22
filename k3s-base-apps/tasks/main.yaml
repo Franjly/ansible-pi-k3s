@@ -8,5 +8,8 @@
 - include: cert_manager.yaml
   run_once: true
 
+- include: longhorn.yaml
+  run_once: true
+
 - include: kubernetes_dashboard.yaml
   run_once: true
