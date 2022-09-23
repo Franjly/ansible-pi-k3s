@@ -1,0 +1,43 @@
+ingress:
+  enabled: {{ gitea.config.ingress.enabled }}
+
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: {{ gitea.config.ingress.annotations.issuer }}
+    # kubernetes.io/tls-acme: "true"
+
+  hosts:
+    - host: {{ gitea.config.ingress.host }}
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+   - secretName: {{ gitea.config.ingress.tls.secretName }}
+     hosts:
+       - {{ gitea.config.ingress.host }}
+
+persistence:
+  enabled: {{ gitea.config.persistence.enabled }}
+  storageClass: {{ gitea.config.persistence.storageClass }}
+
+gitea:
+  admin:
+    existingSecret: {{ gitea.config.gitea.admin.existingSecret }}
+
+memcached:
+  enabled: {{ gitea.config.memcached.enabled }}
+  image:
+    registry: {{ gitea.config.memcached.image.registry }}
+    repository: {{ gitea.config.memcached.image.repository }}
+    tag: {{ gitea.config.memcached.image.tag }}
+  service:
+    port: 11211
+
+postgresql:
+  enabled: {{ gitea.config.postgresql.enabled }}
+  image:
+    registry: {{ gitea.config.postgresql.image.registry }}
+    repository: {{ gitea.config.postgresql.image.repository }}
+    tag: {{ gitea.config.postgresql.image.tag }}
+  persistence:
+    storageClass: {{ gitea.config.postgresql.persistence.storageClass }}

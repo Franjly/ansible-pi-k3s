@@ -1,0 +1,46 @@
+---
+- name: Add Gitea Helm repository
+  kubernetes.core.helm_repository:
+    name: "{{ gitea.helm.repo_name }}"
+    repo_url: "{{ gitea.helm.repo_url }}"
+  delegate_to: localhost
+
+- name: Create Gitea namespace
+  k8s:
+    name: "{{ gitea.namespace }}"
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+
+- name: Create Gitea admin user secret
+  k8s:
+    state: present
+    definition: 
+      apiVersion: v1
+      kind: Secret
+      type: Opaque             
+      metadata:
+        name: "{{ gitea.config.gitea.admin.existingSecret }}"
+        namespace: "{{ gitea.namespace }}"   
+      data:
+        username: "{{ gitea.config.gitea.admin.username | b64encode }}"
+        password: "{{ gitea.config.gitea.admin.password | b64encode }}"
+        email: "{{ gitea.config.gitea.admin.email | b64encode }}"
+  delegate_to: localhost
+
+- name: Create Gitea config file
+  template:
+    src: "templates/gitea_values.yaml.j2"
+    dest: "{{playbook_dir}}/gitea/files/gitea_values.yaml"
+    mode: 0644
+  delegate_to: localhost
+
+- name: Deploy latest version of Gitea chart inside Gitea namespace
+  kubernetes.core.helm:
+    name: "{{ gitea.helm.chart_name }}"
+    chart_ref: "{{ gitea.helm.chart_ref }}"
+    release_namespace: "{{ gitea.namespace }}"
+    update_repo_cache: true
+    values_files:
+      - "{{playbook_dir}}/gitea/files/gitea_values.yaml"
+  delegate_to: localhost
