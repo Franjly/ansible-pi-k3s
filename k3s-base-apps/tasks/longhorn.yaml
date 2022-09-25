@@ -53,5 +53,17 @@
           storageclass.kubernetes.io/is-default-class: "false"
   delegate_to: localhost
 
+- name: Create longhorn recurring jos file
+  template:
+    src: "templates/longhorn_recurring-jobs.yaml.j2"
+    dest: "{{playbook_dir}}/k3s-base-apps/files/longhorn_recurring-jobs.yaml"
+    mode: 0644
+  delegate_to: localhost
+
+- name: Apply Longhorn recurring jos
+  k8s:
+    state: present
+    src: "{{playbook_dir}}/k3s-base-apps/files/longhorn_recurring-jobs.yaml"
+  delegate_to: localhost
 
 # TODO: https://www.bookstack.cn/read/longhorn-1.1.1-en/5608169f6e00ab9c.md

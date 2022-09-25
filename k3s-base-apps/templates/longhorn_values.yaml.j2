@@ -1,6 +1,9 @@
 persistence:
   defaultClassReplicaCount: {{ longhorn.config.persistence.defaultClassReplicaCount }}
   reclaimPolicy: {{ longhorn.config.persistence.reclaimPolicy }}
+  recurringJobSelector:
+    enable: {{ longhorn.config.persistence.recurringJobSelector.enable }}
+    jobList: '{{ longhorn.config.persistence.recurringJobSelector.jobList }}'
 
 defaultSettings:
   backupTarget: {{ longhorn.config.defaultSettings.backupTarget }}

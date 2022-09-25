@@ -1,6 +1,9 @@
 persistence:
   defaultClassReplicaCount: 2
   reclaimPolicy: Retain
+  recurringJobSelector:
+    enable: True
+    jobList: '[{"name":"snapshot-default","task":"snapshot","cron":"0 5 * * *","retain":3},{"name":"backup-default","task":"backup","cron":"0 6 * * *","retain":3}]'
 
 defaultSettings:
   backupTarget: s3://longhorn-backups@us-east-1/
