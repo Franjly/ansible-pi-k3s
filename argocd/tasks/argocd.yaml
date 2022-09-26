@@ -1,0 +1,39 @@
+---
+- name: Create "{{ argocd.namespace }}" namespace
+  k8s:
+    name: "{{ argocd.namespace }}"
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+
+- name: Create argocd kustomization
+  template:
+    src: "templates/kustomization.yaml.j2"
+    dest: "{{playbook_dir}}/argocd/files/kustomization.yaml"
+    mode: 0644
+  delegate_to: localhost
+
+- name: Create argocd ingress manifest
+  template:
+    src: "templates/argocd_ingress.yaml.j2"
+    dest: "{{playbook_dir}}/argocd/files/argocd_ingress.yaml"
+    mode: 0644
+  delegate_to: localhost
+
+- name: Create argocd configmap manifest
+  template:
+    src: "templates/argocd-cm_patch.yaml.j2"
+    dest: "{{playbook_dir}}/argocd/files/argocd-cm_patch.yaml"
+    mode: 0644
+  delegate_to: localhost
+
+- name: Create argocd vault credentials secret manifest
+  template:
+    src: "templates/argocd-vault-plugin-credentials.yaml.j2"
+    dest: "{{playbook_dir}}/argocd/files/argocd-vault-plugin-credentials.yaml"
+    mode: 0644
+  delegate_to: localhost
+
+- name: Deploy argocd
+  shell: "kubectl apply -k {{playbook_dir}}/argocd/files/"
+  delegate_to: localhost

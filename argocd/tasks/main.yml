@@ -1,0 +1,3 @@
+---
+- include: argocd.yaml
+  run_once: true
