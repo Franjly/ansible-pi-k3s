@@ -5,5 +5,4 @@
   - network
   - storage
   - k3s
-  - k3s-base-apps
-  - gitea
+  - argocd
