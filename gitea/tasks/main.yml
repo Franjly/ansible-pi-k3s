@@ -1,3 +1,0 @@
----
-- include: gitea.yaml
-  run_once: true
