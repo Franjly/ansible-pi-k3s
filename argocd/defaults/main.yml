@@ -1,25 +1,5 @@
 ---
 argocd:
+  name: argocd
   namespace: argocd
-  version: 2.4.12
-  config:
-    user: fly
-    ingress:
-      enabled: true
-      host: argocd.192.168.40.200.nip.io
-      annotations:
-        issuer: letsencrypt-staging
-      tls:
-        secretName: argocd-tls
-    persistence:
-      enabled: true
-      storageClass: longhorn
-    vault:
-      VAULT_ADDR: http://vault.vault.svc.cluster.local:8200
-      VAULT_TOKEN: !vault |
-          $ANSIBLE_VAULT;1.1;AES256
-          36343064326264623131333062316561663864646261373136316334623033646638303938363439
-          3834363662363637663065306431353163393330343732330a623765613138393366623165613539
-          39386564393062623937306464313631383533623237373232326637333536353339363937396333
-          3639623261373331640a303235373761656563326237643662656631383361333037653863393263
-          31396462386330353733616539326638343238626335613666316432613333643163
+  repo: git@github.com:Franjly/homelab-pi-k3s.git
