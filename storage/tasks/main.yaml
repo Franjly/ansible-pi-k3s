@@ -7,20 +7,20 @@
     owner: root
     group: root
 
-- name: Add /data partition in fstab on {{ storage.mountpoint }}/{{ inventory_hostname }} if undefined
+- name: Add /data partition in fstab on {{ storage.mountpoint }} if undefined
   become: yes
   lineinfile:
     state: present
     path: '/etc/fstab'
-    regexp: "^{{ storage.nfs }}/{{ inventory_hostname }}"
-    line: '{{ storage.nfs }}/{{ inventory_hostname }} {{ storage.mountpoint }}       {{ storage.type }}     defaults,proto=tcp,noatime      0       0'
+    regexp: "^{{ storage.nfs }}"
+    line: '{{ storage.nfs }} {{ storage.mountpoint }}       {{ storage.type }}     defaults,proto=tcp,noatime      0       0'
 
-- name: Check {{ storage.nfs }}/{{ inventory_hostname }} nfs is mounted
+- name: Check {{ storage.nfs }} nfs is mounted
   become: yes
-  shell: 'sudo mount -l | grep {{ storage.nfs }}/{{ inventory_hostname }} | wc -l'
+  shell: 'sudo mount -l | grep {{ storage.nfs }} | wc -l'
   register: data_nfs_is_mounted
 
-- name: Mount {{ storage.nfs }}/{{ inventory_hostname }} network share
+- name: Mount {{ storage.nfs }} network share
   become: yes
   command: 'sudo mount {{ storage.mountpoint }}'
   when: data_nfs_is_mounted.stdout == "0"
