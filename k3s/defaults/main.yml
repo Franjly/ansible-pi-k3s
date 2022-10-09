@@ -6,6 +6,7 @@ k3s_master:
   - --no-deploy servicelb
   - --no-deploy traefik
   - --node-taint node-role.kubernetes.io/master=true:NoSchedule
+  - --node-label kubernetes.io/role=master
 
 k3s_worker:
   flags:
