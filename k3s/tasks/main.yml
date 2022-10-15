@@ -1,4 +1,6 @@
 ---
+- include: init_config.yml
+
 - include: init_master.yml
   when: '"master" in group_names'
 

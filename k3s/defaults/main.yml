@@ -3,13 +3,25 @@ k3s_master:
   hostname: pi-kube-master-0
   ip: 192.168.30.10
   flags:
+  - --write-kubeconfig-mode 0600
+  - --node-taint node-role.kubernetes.io/master=true:NoSchedule
+  - --node-label node.kubernetes.io/role=master
   - --no-deploy servicelb
   - --no-deploy traefik
-  - --node-taint node-role.kubernetes.io/master=true:NoSchedule
-  - --node-label kubernetes.io/role=master
+  - --disable local-storage
+  - --flannel-backend=none
+  - --disable-network-policy
+  - --kube-controller-manager-arg bind-address=0.0.0.0
+  - --kube-proxy-arg metrics-bind-address=0.0.0.0
+  - --kube-scheduler-arg bind-address=0.0.0.0
+  - --cluster-cidr=10.42.0.0/16
+  - --service-cidr=10.43.0.0/16
+  - --cluster-dns=10.43.0.254
+  - --kubelet-arg config=/etc/rancher/k3s/kubelet.config
 
 k3s_worker:
   flags:
-  - --node-label kubernetes.io/role=worker
-
+  - --node-label node.kubernetes.io/role=worker
+  - --kube-proxy-arg metrics-bind-address=0.0.0.0
+  - --kubelet-arg config=/etc/rancher/k3s/kubelet.config
 k3s_version: ''

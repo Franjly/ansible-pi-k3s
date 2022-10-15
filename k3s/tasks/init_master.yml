@@ -29,3 +29,9 @@
     regexp: '127\.0\.0\.1'
     replace: "{{ k3s_api_server_host }}"
   delegate_to: localhost
+
+- name: Update kube config permissions
+  file:
+    path: '~/.kube/config'
+    mode: '0600'
+  delegate_to: localhost

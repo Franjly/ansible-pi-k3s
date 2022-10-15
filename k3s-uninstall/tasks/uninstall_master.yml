@@ -1,0 +1,4 @@
+---
+- name: Uninstall k3s masters
+  become: yes
+  shell: /usr/local/bin/k3s-uninstall.sh

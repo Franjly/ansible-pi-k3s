@@ -1,0 +1,39 @@
+---
+- name: Enable iptables to see bridged traffic - modules-load.d
+  become: yes
+  copy:
+    dest: "/etc/modules-load.d/k3s.conf"
+    content: |
+      br_netfilter
+
+- name: Enable iptables to see bridged traffic - sysctl.d
+  become: yes
+  copy:
+    dest: "/etc/sysctl.d/k3s.conf"
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+
+- name: Create k3s config directory
+  become: yes
+  file:
+    path: "/etc/rancher/k3s"
+    state: directory
+
+- name: Prepare K3S kubelet configuration file
+  become: yes
+  copy:
+    dest: "/etc/rancher/k3s/kubelet.config"
+    content: |
+      apiVersion: kubelet.config.k8s.io/v1beta1
+      kind: KubeletConfiguration
+      shutdownGracePeriod: 30s
+      shutdownGracePeriodCriticalPods: 10s
+
+- name: Configure parameters
+  become: yes
+  shell: "sudo sysctl --system"
+  notify: Reboot host and wait for it to restart
+
+- name: Flush handlers
+  meta: flush_handlers
