@@ -1,0 +1,20 @@
+---
+- name: Create "{{ longhorn.namespace }}" namespace
+  k8s:
+    name: "{{ longhorn.namespace }}"
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+
+- name: Create secret
+  template:
+    src: "templates/longhorn-backup-target-credential-secret.yaml.j2"
+    dest: "{{playbook_dir}}/longhorn/files/longhorn-backup-target-credential-secret.yaml"
+    mode: 0644
+  delegate_to: localhost
+
+- name: Apply secret
+  k8s:
+    state: present
+    src: "{{playbook_dir}}/longhorn/files/longhorn-backup-target-credential-secret.yaml"
+  delegate_to: localhost
