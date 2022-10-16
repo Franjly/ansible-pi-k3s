@@ -1,0 +1,5 @@
+---
+calico:
+  name: calico
+  namespace: tigera-operator
+  repo: git@github.com:Franjly/homelab-pi-k3s.git

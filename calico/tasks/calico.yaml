@@ -1,0 +1,28 @@
+---
+- name: Create "{{ calico.namespace }}" namespace
+  k8s:
+    name: "{{ calico.namespace }}"
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+
+- name: Git checkout
+  git:
+    repo: "{{ calico.repo }}"
+    dest: "{{playbook_dir}}/calico/files/homelab-pi-k3s"
+  delegate_to: localhost
+
+- name: Deploy Calico
+  ansible.builtin.shell: |
+    helm dependency build &&
+    helm template "{{ calico.name }}" --include-crds --namespace "{{ calico.namespace }}" . > resources/all.yaml &&
+    kubectl apply --server-side=true --force-conflicts -k .
+  args:
+    chdir: "{{playbook_dir}}/calico/files/homelab-pi-k3s/system/calico/"
+  delegate_to: localhost
+
+- name: Remove repo
+  ansible.builtin.file:
+    path: "{{playbook_dir}}/calico/files/homelab-pi-k3s"
+    state: absent
+  delegate_to: localhost
