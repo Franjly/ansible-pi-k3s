@@ -2,3 +2,6 @@
 - hosts: all
   roles:
   - k3s
+  - calico
+  - argocd
+  - longhorn
