@@ -13,16 +13,21 @@
   delegate_to: localhost
 
 - name: Deploy Calico
-  ansible.builtin.shell: |
+  shell: |
     helm dependency build &&
     helm template "{{ calico.name }}" --include-crds --namespace "{{ calico.namespace }}" . > resources/all.yaml &&
     kubectl apply --server-side=true --force-conflicts -k .
   args:
     chdir: "{{playbook_dir}}/calico/files/homelab-pi-k3s/system/calico/"
+  retries: 3
+  delay: 5
+  ignore_errors: yes
+  register: task_result
+  until: task_result.rc == 0
   delegate_to: localhost
 
 - name: Remove repo
-  ansible.builtin.file:
+  file:
     path: "{{playbook_dir}}/calico/files/homelab-pi-k3s"
     state: absent
   delegate_to: localhost
