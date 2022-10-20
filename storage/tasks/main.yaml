@@ -1,26 +1,16 @@
 ---
-- name: Check {{ storage.mountpoint }} mountpoint exist
+- name: Check {{ storage.longhorn }} exist
   become: yes
   file:
-    path: '{{ storage.mountpoint }}'
+    path: '{{ storage.longhorn }}'
     state: directory
     owner: root
     group: root
 
-- name: Add /data partition in fstab on {{ storage.mountpoint }} if undefined
+- name: Check {{ storage.nfs_provisioner }} exist
   become: yes
-  lineinfile:
-    state: present
-    path: '/etc/fstab'
-    regexp: "^{{ storage.nfs }}"
-    line: '{{ storage.nfs }} {{ storage.mountpoint }}       {{ storage.type }}     defaults,proto=tcp,noatime      0       0'
-
-- name: Check {{ storage.nfs }} nfs is mounted
-  become: yes
-  shell: 'sudo mount -l | grep {{ storage.nfs }} | wc -l'
-  register: data_nfs_is_mounted
-
-- name: Mount {{ storage.nfs }} network share
-  become: yes
-  command: 'sudo mount {{ storage.mountpoint }}'
-  when: data_nfs_is_mounted.stdout == "0"
+  file:
+    path: '{{ storage.nfs_provisioner }}'
+    state: directory
+    owner: root
+    group: root

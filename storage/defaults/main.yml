@@ -1,6 +1,4 @@
 ---
 storage:
-  opts: "vers=4.2,proto=tcp,port=2049,rw,all_squash"
-  type: nfs4
-  mountpoint: /data/nfs
-  nfs: "192.168.40.250:/mnt/hdd-storage/pi-k3s/volumes"
+  longhorn: /data/longhorn
+  nfs_provisioner: /data/nfs-provisioner
