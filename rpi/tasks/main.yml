@@ -1,0 +1,38 @@
+---
+- name: Disable WIFI
+  become: yes
+  lineinfile:
+    dest: /boot/config.txt
+    line: 'dtoverlay=disable-wifi'
+    state: present
+
+- name: Disable Bluetooth
+  become: yes
+  lineinfile:
+    dest: /boot/config.txt
+    line: 'dtoverlay=disable-bt'
+    state: present
+
+- name: Enable container features
+  become: yes
+  replace:
+    path: /boot/cmdline.txt
+    regexp: '^([\w](?!.*\b{{ item }}\b).*)$'
+    replace: '\1 {{ item }}'
+  with_items: "{{ rpi_container_features }}"
+
+- name: apt update
+  become: yes
+  command: sudo apt update
+
+- name: apt-get upgrade -y
+  become: yes
+  command: sudo apt-get upgrade -y
+
+- name: apt full-upgrade -y
+  become: yes
+  command: sudo apt full-upgrade -y
+  notify: Reboot host and wait for it to restart
+
+- name: Flush handlers
+  meta: flush_handlers

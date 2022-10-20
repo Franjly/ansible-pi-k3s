@@ -1,1 +1,21 @@
 ---
+base_default_locale: en_US.UTF-8
+timezone: Europe/Madrid
+base_apt_packages:
+- vim
+- git
+- rsync
+- acl # For ansible become_user https://stackoverflow.com/questions/36646880/ansible-2-1-0-using-become-become-user-fails-to-set-permissions-on-temp-file
+- dnsutils
+- vlan
+- open-iscsi
+- gawk
+- curl
+- util-linux
+- nfs-common
+
+bash_aliases_path: "/etc/profile.d/00-aliases.sh"
+bash_aliases:
+- alias ll="ls -l"
+- alias la="ls -la"
+- alias md="mkdir -pv"

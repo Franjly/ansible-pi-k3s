@@ -1,4 +1,44 @@
 ---
+- name: Install common packages
+  become: yes
+  apt:
+    name: '{{ base_apt_packages }}'
+    update_cache: yes
+    state: present
+
+- name: Add common aliases
+  become: yes
+  lineinfile:
+    dest: "{{ bash_aliases_path }}"
+    create: yes
+    mode: 0644
+    line: "{{ item }}"
+  with_items: "{{ bash_aliases }}"
+
+- name: Set default locale
+  become: yes
+  lineinfile:
+    dest: /etc/default/locale
+    regexp: 'LANG=.+'
+    line: 'LANG={{ base_default_locale }}'
+    state: present
+
+- name: Enable locale
+  become: yes
+  locale_gen:
+    name: '{{ base_default_locale }}'
+    state: present
+  
+- name: Set timezone
+  become: yes
+  file:
+    src: /usr/share/zoneinfo/{{ timezone }}
+    dest: /etc/localtime
+    state: link
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Set /etc/hosts for other nodes
   become: yes
   lineinfile:

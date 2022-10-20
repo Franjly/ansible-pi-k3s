@@ -7,5 +7,5 @@ Ansible playbook to change the default pi user
 
 ## Usage
 ```bash
-$ ansible-playbook 0-change-default-user.yml
+$ ansible-playbook 0_change-default-user.yml
 ```

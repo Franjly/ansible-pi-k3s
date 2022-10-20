@@ -1,0 +1,9 @@
+---
+- hosts: all
+  roles:
+  - base
+  - rpi
+  - os
+  - ssh
+  - network
+  - storage
