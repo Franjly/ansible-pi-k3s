@@ -1,6 +1,6 @@
 ---
 k3s_version: ''
-k3s_channel: latest
+k3s_channel: stable
 
 k3s_master:
   hostname: pi-kube-master-0
