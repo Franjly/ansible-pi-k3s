@@ -21,5 +21,5 @@ ssh_config_path: /etc/ssh/ssh_config
 ssh_hash_known_hosts: "no"
 ssh_host_key_algorithm: 'ed25519'
 
-ssh_admin_key: '~/.ssh/id_pi-k3s_ed25519.pub'
+ssh_admin_key: '~/.ssh/id_ed25519.pub'
 ssh_enable_internode_ssh: False
