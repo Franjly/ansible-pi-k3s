@@ -13,6 +13,13 @@
     line: 'dtoverlay=disable-bt'
     state: present
 
+- name: Set GPU memory
+  become: yes
+  lineinfile:
+    dest: /boot/config.txt
+    line: 'gpu_mem=16'
+    state: present
+
 - name: Enable container features
   become: yes
   replace:
