@@ -28,5 +28,5 @@ Example Playbook
 ```yaml
 - hosts: all
   roles:
-  - k3s
+  - k3s-install
 ```
