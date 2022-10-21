@@ -2,7 +2,7 @@
 all:
   vars:
     ansible_user: pi-k3s
-    ansible_ssh_private_key_file: ~/.ssh/id_pi-k3s_ed25519
+    ansible_ssh_private_key_file: ~/.ssh/id_ed25519
     ansible_ssh_pass: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           30626434623037323161666464656435616465323035316235346263363839623062616362353631
@@ -20,11 +20,11 @@ all:
           serial_id: 2f873657
         # pi-kube-master-1:
         #   ansible_host: 192.168.30.11
-    # workers:
-    #   hosts:
-    #     pi-kube-worker-0:
-    #       ansible_host: 192.168.30.20
-    #       serial_id: 1e5fec2d
-    #     pi-kube-worker-1:
-    #       ansible_host: 192.168.30.21
-    #       serial_id: fabce213
+    workers:
+      hosts:
+        pi-kube-worker-0:
+          ansible_host: 192.168.30.20
+          serial_id: 1e5fec2d
+        pi-kube-worker-1:
+          ansible_host: 192.168.30.21
+          serial_id: fabce213
