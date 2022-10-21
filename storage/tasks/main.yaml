@@ -14,3 +14,7 @@
     state: directory
     owner: root
     group: root
+
+- name: Reboot
+  become: yes
+  reboot:

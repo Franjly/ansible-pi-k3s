@@ -11,10 +11,10 @@ SSH server to be installed on target hosts
 Role Variables
 --------------
 
-| Variable                 | Description                                                               | Default           |
-|--------------------------|---------------------------------------------------------------------------|-------------------|
-| ssh_admin_key            | Path to public key on local machine to be authorized on target host       | ~/.ssh/id_rsa.pub |
-| ssh_enable_internode_ssh | Enable passwordless SSH from every target host to every other target host | False             |
+| Variable                 | Description                                                               | Default                      |
+|--------------------------|---------------------------------------------------------------------------|------------------------------|
+| ssh_admin_key            | Path to public key on local machine to be authorized on target host       | ~/.ssh/id_pi-k3s_ed25519.pub |
+| ssh_enable_internode_ssh | Enable passwordless SSH from every target host to every other target host | False                        |
 
 Refer to the defaults for other customizable SSH settings
 

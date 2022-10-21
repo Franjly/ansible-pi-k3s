@@ -1,7 +1,7 @@
 ---
 - name: Check if ssh key exists
   stat:
-    path: '/home/{{ ansible_user }}/.ssh/id_rsa'
+    path: '/home/{{ ansible_user }}/.ssh/id_{{ ssh_keygen_comment }}_{{ ssh_keygen_algorithm }}'
   register: ssh_key_stat
 
 - name: Create .ssh directory
@@ -9,13 +9,24 @@
     path: '/home/{{ ansible_user }}/.ssh/'
     state: directory
 
+- name: Check if local ssh key exists
+  stat:
+    path: '~/.ssh/id_{{ ssh_keygen_comment }}_{{ ssh_keygen_algorithm }}'
+  delegate_to: localhost
+  register: local_ssh_key_stat
+
 - name: Generate ssh key
-  command: 'ssh-keygen -t {{ ssh_keygen_algorithm }} -b {{ ssh_keygen_bits }} -N "{{ ssh_keygen_password }}" -f /home/{{ ansible_user }}/.ssh/id_{{ ssh_keygen_algorithm }}'
+  command: 'ssh-keygen -t {{ ssh_keygen_algorithm }} -a {{ ssh_keygen_kdf }} -N "{{ ssh_keygen_password }}" -C {{ ssh_keygen_comment }} -f /home/{{ ansible_user }}/.ssh/id_{{ ssh_keygen_comment }}_{{ ssh_keygen_algorithm }}'
   when: ssh_key_stat.stat.exists == False
+
+- name: Generate local ssh key
+  command: 'ssh-keygen -t {{ ssh_keygen_algorithm }} -a {{ ssh_keygen_kdf }} -N "{{ ssh_keygen_password }}" -C {{ ssh_keygen_comment }} -f ~/.ssh/id_{{ ssh_keygen_comment }}_{{ ssh_keygen_algorithm }}'
+  delegate_to: localhost
+  when: local_ssh_key_stat.stat.exists == False
 
 - name: Slurp public keys from all nodes
   slurp:
-    src: '/home/{{ ansible_user }}/.ssh/id_{{ ssh_keygen_algorithm }}.pub'
+    src: '/home/{{ ansible_user }}/.ssh/id_{{ ssh_keygen_comment }}_{{ ssh_keygen_algorithm }}.pub'
   register: ssh_key_slurp
 
 - name: Copy public keys of all nodes into authorized_keys
