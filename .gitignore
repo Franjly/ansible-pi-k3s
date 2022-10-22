@@ -1,2 +1,3 @@
 .history
-k3s-apps-install/files/
+k3s-apps-install/files/*
+!k3s-apps-install/files/.gitkeep
