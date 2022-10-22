@@ -6,7 +6,7 @@
   delegate_to: localhost
 
 - name: Pause 30 seconds to deploy pi-hole
-  ansible.builtin.pause:
+  pause:
     seconds: 30
 
 - name: Wait for pi-hole pods to be running

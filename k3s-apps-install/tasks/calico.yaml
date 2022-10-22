@@ -21,7 +21,7 @@
   delegate_to: localhost
 
 - name: Pause 2 minutes to deploy calico
-  ansible.builtin.pause:
+  pause:
     minutes: 2
 
 - name: Wait for calico pods to be running

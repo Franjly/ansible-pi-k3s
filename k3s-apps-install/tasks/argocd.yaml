@@ -7,7 +7,7 @@
   delegate_to: localhost
 
 - name: Deploy ArgoCD
-  ansible.builtin.shell: |
+  shell: |
     helm dependency build &&
     helm template "{{ apps.argocd.name }}" --include-crds --namespace "{{ apps.argocd.namespace }}" . > resources/all.yaml &&
     kubectl apply -k .
@@ -16,7 +16,7 @@
   delegate_to: localhost
 
 - name: Pause 1 minutes to deploy argocd
-  ansible.builtin.pause:
+  pause:
     minutes: 1
 
 - name: Wait for argocd pods to be running

@@ -18,7 +18,7 @@
   delegate_to: localhost
 
 - name: Pause 1 minutes to deploy vault
-  ansible.builtin.pause:
+  pause:
     minutes: 1
 
 - name: Wait for vault pods to be running

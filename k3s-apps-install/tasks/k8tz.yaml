@@ -6,7 +6,7 @@
   delegate_to: localhost
 
 - name: Pause 1 minutes to deploy k8tz
-  ansible.builtin.pause:
+  pause:
     minutes: 1
 
 - name: Wait for k8tz pods to be running

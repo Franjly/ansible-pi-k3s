@@ -28,7 +28,7 @@
   delegate_to: localhost
 
 - name: Pause 1 minutes to deploy longhorn
-  ansible.builtin.pause:
+  pause:
     minutes: 1
 
 - name: Wait for longhorn pods to be running
