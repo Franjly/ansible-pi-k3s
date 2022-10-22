@@ -1,0 +1,33 @@
+---
+- name: Create "{{ apps.calico.namespace }}" namespace
+  k8s:
+    name: "{{ apps.calico.namespace }}"
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+
+- name: Deploy Calico
+  shell: |
+    helm dependency build &&
+    helm template "{{ apps.calico.name }}" --include-crds --namespace "{{ apps.calico.namespace }}" . > resources/all.yaml &&
+    kubectl apply --server-side=true --force-conflicts -k .
+  args:
+    chdir: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/system/calico/"
+  retries: 3
+  delay: 5
+  ignore_errors: yes
+  register: task_result
+  until: task_result.rc == 0
+  delegate_to: localhost
+
+- name: Pause 2 minutes to deploy calico
+  ansible.builtin.pause:
+    minutes: 2
+
+- name: Wait for calico pods to be running
+  shell: kubectl get pods -n calico-system -o json
+  register: kubectl_get_pods_calico
+  until: kubectl_get_pods_calico.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delegate_to: localhost
+  retries: 10
+  delay: 30

@@ -1,0 +1,21 @@
+---
+- include: init.yaml
+  run_once: true
+- include: calico.yaml
+  run_once: true
+- include: argocd.yaml
+  run_once: true
+- include: k8tz.yaml
+  run_once: true
+- include: longhorn.yaml
+  run_once: true
+- include: vault.yaml
+  run_once: true
+- include: metallb.yaml
+  run_once: true
+- include: ingress.yaml
+  run_once: true
+- include: pi-hole.yaml
+  run_once: true
+- include: clean.yaml
+  run_once: true

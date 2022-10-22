@@ -1,0 +1,6 @@
+---
+- name: Git checkout
+  git:
+    repo: "{{ apps.repo }}"
+    dest: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s"
+  delegate_to: localhost

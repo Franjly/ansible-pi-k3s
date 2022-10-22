@@ -1,0 +1,36 @@
+---
+- name: Deploy ingress-nginx
+  k8s:
+    state: present
+    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/ingress-nginx.yaml"
+  delegate_to: localhost
+
+- name: Pause 30 seconds to deploy ingress-nginx
+  pause:
+    seconds: 30
+
+- name: Wait for ingress-nginx pods to be running
+  shell: kubectl get pods -n ingress-nginx -o json
+  register: kubectl_get_pods_ingress_nginx
+  until: kubectl_get_pods_ingress_nginx.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delegate_to: localhost
+  retries: 10
+  delay: 30
+
+- name: Deploy cert-manager
+  k8s:
+    state: present
+    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/cert-manager.yaml"
+  delegate_to: localhost
+
+- name: Pause 30 seconds to deploy cert-manager
+  pause:
+    seconds: 30
+
+- name: Wait for cert-manager pods to be running
+  shell: kubectl get pods -n cert-manager -o json
+  register: kubectl_get_pods_cert_manager
+  until: kubectl_get_pods_cert_manager.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delegate_to: localhost
+  retries: 10
+  delay: 30

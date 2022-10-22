@@ -1,7 +1,5 @@
 ---
 - hosts: all
   roles:
-  - k3s
-  - calico
-  - argocd
-  - longhorn
+  - k3s-install
+  - k3s-apps-install

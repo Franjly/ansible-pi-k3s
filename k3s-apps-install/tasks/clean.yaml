@@ -1,0 +1,6 @@
+---
+- name: Remove repo
+  file:
+    path: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s"
+    state: absent
+  delegate_to: localhost

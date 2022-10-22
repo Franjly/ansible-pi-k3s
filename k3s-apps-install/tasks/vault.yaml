@@ -1,0 +1,68 @@
+---
+- name: Create "{{ apps.vault.namespace }}" namespace
+  k8s:
+    name: "{{ apps.vault.namespace }}"
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+
+# TODO: Automate restore of volume with longhorn python library
+- name: Restore vault volume on longhorn
+  pause:
+    prompt: "Vault volume restored?"
+
+- name: Deploy vault
+  k8s:
+    state: present
+    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/vault.yaml"
+  delegate_to: localhost
+
+- name: Pause 1 minutes to deploy vault
+  ansible.builtin.pause:
+    minutes: 1
+
+- name: Wait for vault pods to be running
+  shell: kubectl get pods -n vault -o json
+  register: kubectl_get_pods_vault
+  until: kubectl_get_pods_vault.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delegate_to: localhost
+  retries: 10
+  delay: 30
+
+- name: Unseal vault
+  shell: "kubectl exec -ti vault-0 -n vault -- vault operator unseal {{ item }}"
+  with_items: "{{ apps.vault.unseal_keys }}"
+  delegate_to: localhost
+
+- name: Port-fordward vault
+  shell: kubectl port-forward -n vault service/vault 8200:8200 > /dev/null 2>&1 &
+  delegate_to: localhost
+
+- name: Grant permission to argocd
+  shell: vault write auth/kubernetes/config token_reviewer_jwt="`kubectl get secret argocd-repo-server -n argocd -o go-template='{{ '{{' }} .data.token {{ '}}' }}' | base64 --decode`" kubernetes_host="`kubectl config view --raw --minify --flatten --output='jsonpath={.clusters[].cluster.server}'`" kubernetes_ca_cert="`kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.certificate-authority-data}' | base64 --decode`" disable_local_ca_jwt="true"
+  environment:
+    VAULT_ADDR: http://localhost:8200
+    VAULT_SKIP_VERIFY: true
+  delegate_to: localhost
+
+- name: Get kubectl port-forward process
+  shell: "ps -ef | grep -v grep | grep -w 'kubectl port-forward -n vault service/vault 8200:8200' | awk '{print $2}'"
+  register: port_forward_process
+  delegate_to: localhost
+
+- name: Kill kubectl port-forward process
+  shell: "kill -9 {{ item }}"
+  with_items: "{{ port_forward_process.stdout_lines }}"
+  delegate_to: localhost
+
+- name: Deploy longhorn with vault plugin
+  k8s:
+    state: present
+    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/longhorn.yaml"
+  delegate_to: localhost
+
+- name: Deploy argocd deploy to argocd
+  k8s:
+    state: present
+    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/argocd.yaml"
+  delegate_to: localhost
