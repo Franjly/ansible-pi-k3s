@@ -19,6 +19,8 @@
     src: "{{playbook_dir}}/k3s-apps-install/files/longhorn-backup-target-credential-secret.yaml"
   delegate_to: localhost
 
+# TODO: Comment line 4 on homelab-pi-k3s/system/longhorn-system/kustomization.yaml
+
 - name: Deploy longhorn
   k8s:
     state: present
