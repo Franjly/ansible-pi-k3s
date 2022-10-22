@@ -1,5 +1,0 @@
----
-argocd:
-  name: argocd
-  namespace: argocd
-  repo: git@github.com:Franjly/homelab-pi-k3s.git

@@ -1,3 +1,0 @@
----
-- include: calico.yaml
-  run_once: true
