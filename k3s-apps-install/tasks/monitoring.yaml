@@ -52,3 +52,13 @@
   delegate_to: localhost
   retries: 10
   delay: 30
+
+- name: Patch calico FelixConfiguration to activate metrics
+  shell: "kubectl patch felixconfiguration default --type merge --patch '{\"spec\":{\"prometheusMetricsEnabled\": true}}'"
+  delegate_to: localhost
+
+- name: Deploy calico-metrics
+  k8s:
+    state: present
+    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/calico-metrics.yaml"
+  delegate_to: localhost
