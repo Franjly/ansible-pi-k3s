@@ -1,8 +1,0 @@
----
-- hosts: all
-  roles:
-  - base
-  - network
-  - storage
-  - k3s
-  - argocd
