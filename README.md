@@ -7,5 +7,7 @@ Ansible playbooks for common provisioning tasks on clusters
 
 ## Usage
 ```bash
-$ ansible-playbook provision.yml
+$ ansible-playbook -i inventory_change_default_user.yml 0_change-default-user.yml
+$ ansible-playbook -i inventory.yml 1_base-config.yml
+$ ansible-playbook -i inventory.yml 2_k3s-install.yml
 ```
