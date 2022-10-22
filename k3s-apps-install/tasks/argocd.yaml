@@ -6,6 +6,8 @@
     state: present
   delegate_to: localhost
 
+# TODO: Enable admin user - modify line 223 - homelab-pi-k3s/platform/argocd/values.yaml
+
 - name: Deploy ArgoCD
   shell: |
     helm dependency build &&
