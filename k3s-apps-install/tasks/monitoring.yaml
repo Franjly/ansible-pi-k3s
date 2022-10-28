@@ -65,9 +65,9 @@
   shell: "kubectl patch felixconfiguration default --type merge --patch '{\"spec\":{\"prometheusMetricsEnabled\": true}}'"
   delegate_to: localhost
 
-- name: Patch service calico-kube-controllers-metrics
-  shell: "kubectl patch svc calico-kube-controllers-metrics -n calico-system -p '{\"metadata\":{\"annotations\":{\"prometheus.io/port\": \"9094\",\"prometheus.io/scrape\": \"true\"}}}'"
-  delegate_to: localhost
+# - name: Patch service calico-kube-controllers-metrics
+#   shell: "kubectl patch svc calico-kube-controllers-metrics -n calico-system -p '{\"metadata\":{\"annotations\":{\"prometheus.io/port\": \"9094\",\"prometheus.io/scrape\": \"true\"}}}'"
+#   delegate_to: localhost
 
 - name: Deploy calico-metrics
   k8s:
