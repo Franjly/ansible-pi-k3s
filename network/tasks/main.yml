@@ -1,10 +1,10 @@
 ---
-- name: Set DNS configuration
-  become: yes
-  template:
-    src: "templates/resolv.conf.j2"
-    dest: "/etc/resolv.conf"
-    mode: 0644
+# - name: Set DNS configuration
+#   become: yes
+#   template:
+#     src: "templates/resolv.conf.j2"
+#     dest: "/etc/resolv.conf"
+#     mode: 0644
 
 - name: Set VLAN configuration
   become: yes
@@ -21,3 +21,6 @@
     mode: 0644
   notify:
     - restart network
+
+- name: Flush handlers
+  meta: flush_handlers
