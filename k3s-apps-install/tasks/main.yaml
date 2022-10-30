@@ -17,5 +17,21 @@
   run_once: true
 - include: pi-hole.yaml
   run_once: true
+- include: velero.yaml
+  run_once: true
+- include: dashboards.yaml
+  run_once: true
+- include: external-endpoints.yaml
+  run_once: true
+- include: monitoring.yaml
+  run_once: true
+- include: gitea.yaml
+  run_once: true
+- include: arr.yaml
+  run_once: true
+- include: home-assistant.yaml
+  run_once: true
+- include: nfs_provisioner.yaml
+  run_once: true
 - include: clean.yaml
   run_once: true
