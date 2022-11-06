@@ -1,0 +1,33 @@
+---
+- name: Create certificate directory
+  file:
+    path: "{{playbook_dir}}/certificate/files/certificates"
+    state: directory
+  delegate_to: localhost
+
+- name: Generate an OpenSSL private key
+  openssl_privatekey:
+    path: "{{playbook_dir}}/certificate/files/certificates/{{ ssl_certificate.server_hostname }}_privkey.pem"
+    size: "{{ ssl_certificate.key_size }}"
+    type: "{{ ssl_certificate.key_type }}"
+    backup: yes
+  delegate_to: localhost
+
+- name: Generate an OpenSSL Certificate Signing Request with Subject information
+  openssl_csr:
+    path: "{{playbook_dir}}/certificate/files/certificates/{{ ssl_certificate.server_hostname }}.csr" 
+    privatekey_path: "{{playbook_dir}}/certificate/files/certificates/{{ ssl_certificate.server_hostname }}_privkey.pem"
+    country_name: "{{ ssl_certificate.country_name }}"
+    organization_name: "{{ ssl_certificate.organization_name }}"
+    email_address: "{{ ssl_certificate.email_address }}"
+    common_name: "{{ ssl_certificate.server_hostname }}"
+  delegate_to: localhost
+
+- name: Generate a Self Signed OpenSSL certificate
+  openssl_certificate:
+    path: "{{playbook_dir}}/certificate/files/certificates/{{ ssl_certificate.server_hostname }}_cert.pem" 
+    privatekey_path: "{{playbook_dir}}/certificate/files/certificates/{{ ssl_certificate.server_hostname }}_privkey.pem"
+    csr_path: "{{playbook_dir}}/certificate/files/certificates/{{ ssl_certificate.server_hostname }}.csr" 
+    provider: selfsigned
+    selfsigned_not_after: "{{ ssl_certificate.selfsigned_not_after }}"
+  delegate_to: localhost

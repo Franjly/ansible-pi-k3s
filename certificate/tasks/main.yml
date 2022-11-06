@@ -1,0 +1,3 @@
+---
+- include: ssl_certificate.yaml
+  run_once: true
