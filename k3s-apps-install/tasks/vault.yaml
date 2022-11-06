@@ -6,15 +6,44 @@
     state: present
   delegate_to: localhost
 
-# TODO: Automate restore of volume with longhorn python library
-- name: Restore vault volume on longhorn
+- name: Restore vault volume backup from longhorn
+  uri:
+    url: https://longhorn.local.tecno-fly.com/v1/volumes
+    method: POST
+    body: '{"name":"{{ apps.vault.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ apps.vault.backup_id }}&volume={{ apps.vault.volume_name }}","staleReplicaTimeout":20}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Pause 1 minutes to restore vault volume backup
   pause:
-    prompt: "Vault volume restored?"
+    minutes: 1
+
+- name: Create PV vault
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.vault.volume_name }}?action=pvCreate"
+    method: POST
+    body: '{"pvName":"{{ apps.vault.volume_name }}","fsType":"ext4"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Create PVC vault
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.vault.volume_name }}?action=pvcCreate"
+    method: POST
+    body: '{"namespace":"{{ apps.vault.namespace }}","pvcName":"{{ apps.vault.pvc_name }}"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
 
 - name: Deploy vault
   k8s:
     state: present
-    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/vault.yaml"
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/platform/vault/project/vault.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/platform/vault/application/vault.yaml'
   delegate_to: localhost
 
 - name: Pause 1 minutes to deploy vault
@@ -55,14 +84,37 @@
   with_items: "{{ port_forward_process.stdout_lines }}"
   delegate_to: localhost
 
+- name: Restore longhorn backup target secret file
+  lineinfile:
+    dest: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/system/longhorn-system/kustomization.yaml"
+    regexp: "^#{{ item }}"
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - '- ./secrets/longhorn-backup-target-credential-secret.yaml'
+  delegate_to: localhost
+
+- name: Commit longhorn changes to repository
+  shell: |
+    git add kustomization.yaml &&
+    git commit -m "[Ansible] Longhorn - Restore backup target secret file" &&
+    git push
+  args:
+    chdir: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/system/longhorn-system"
+  delegate_to: localhost
+
 - name: Deploy longhorn with vault plugin
   k8s:
     state: present
-    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/longhorn.yaml"
+    src: "{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/longhorn-system/application/longhorn-system.yaml"
+    apply: true
   delegate_to: localhost
 
 - name: Deploy argocd deploy to argocd
   k8s:
     state: present
-    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/argocd.yaml"
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/platform/argocd/project/argocd.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/platform/argocd/application/argocd.yaml'
   delegate_to: localhost

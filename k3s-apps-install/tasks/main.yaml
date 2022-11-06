@@ -7,13 +7,17 @@
   run_once: true
 - include: k8tz.yaml
   run_once: true
+- include: metallb.yaml
+  run_once: true
+- include: ingress.yaml
+  run_once: true
 - include: longhorn.yaml
   run_once: true
 - include: vault.yaml
   run_once: true
-- include: metallb.yaml
+- include: monitoring.yaml
   run_once: true
-- include: ingress.yaml
+- include: cert-manager.yaml
   run_once: true
 - include: pi-hole.yaml
   run_once: true
@@ -23,15 +27,17 @@
   run_once: true
 - include: external-endpoints.yaml
   run_once: true
-- include: monitoring.yaml
-  run_once: true
 - include: gitea.yaml
+  run_once: true
+- include: nfs-provisioner.yaml
   run_once: true
 - include: arr.yaml
   run_once: true
 - include: home-assistant.yaml
   run_once: true
-- include: nfs_provisioner.yaml
-  run_once: true
+# - include: trivy.yaml
+#   run_once: true
+# - include: kyverno.yaml
+#   run_once: true
 - include: clean.yaml
   run_once: true

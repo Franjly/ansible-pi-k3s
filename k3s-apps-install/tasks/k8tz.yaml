@@ -2,7 +2,10 @@
 - name: Deploy k8tz
   k8s:
     state: present
-    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/k8tz.yaml"
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/k8tz/project/k8tz.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/k8tz/application/k8tz.yaml'
   delegate_to: localhost
 
 - name: Pause 1 minutes to deploy k8tz

@@ -2,7 +2,10 @@
 - name: Deploy nfs-provisioner
   k8s:
     state: present
-    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/nfs-provisioner.yaml"
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/nfs-provisioner/project/nfs-provisioner.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/nfs-provisioner/application/nfs-provisioner.yaml'
   delegate_to: localhost
 
 - name: Pause 30 seconds to deploy nfs-provisioner

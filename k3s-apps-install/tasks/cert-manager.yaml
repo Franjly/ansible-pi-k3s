@@ -1,0 +1,20 @@
+- name: Deploy cert-manager
+  k8s:
+    state: present
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/cert-manager/project/cert-manager.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/cert-manager/application/cert-manager.yaml'
+  delegate_to: localhost
+
+- name: Pause 30 seconds to deploy cert-manager
+  pause:
+    seconds: 30
+
+- name: Wait for cert-manager pods to be running
+  shell: kubectl get pods -n cert-manager -o json
+  register: kubectl_get_pods_cert_manager
+  until: kubectl_get_pods_cert_manager.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delegate_to: localhost
+  retries: 10
+  delay: 30

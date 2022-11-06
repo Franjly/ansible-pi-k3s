@@ -1,0 +1,21 @@
+---
+- name: Deploy kyverno
+  k8s:
+    state: present
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/kyverno/project/kyverno.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/kyverno/application/kyverno.yaml'
+  delegate_to: localhost
+
+- name: Pause 30 seconds to deploy kyverno
+  pause:
+    seconds: 30
+
+- name: Wait for kyverno pods to be running
+  shell: kubectl get pods -n kyverno -o json
+  register: kubectl_get_pods_kyverno
+  until: kubectl_get_pods_kyverno.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delegate_to: localhost
+  retries: 10
+  delay: 30

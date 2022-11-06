@@ -2,7 +2,10 @@
 - name: Deploy dashboards
   k8s:
     state: present
-    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/dashboards.yaml"
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/dashboards/project/dashboards.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/dashboards/application/dashboards.yaml'
   delegate_to: localhost
 
 - name: Pause 30 seconds to deploy dashboards

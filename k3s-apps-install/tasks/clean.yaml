@@ -1,6 +1,9 @@
 ---
 - name: Remove repo
   file:
-    path: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s"
+    path: "{{ item }}"
     state: absent
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s'
   delegate_to: localhost

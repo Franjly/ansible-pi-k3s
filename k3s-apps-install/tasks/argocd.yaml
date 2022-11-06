@@ -6,12 +6,19 @@
     state: present
   delegate_to: localhost
 
-# TODO: Enable admin user - modify line 223 - homelab-pi-k3s/platform/argocd/values.yaml
+- name: Enable admin user on ArgoCD
+  lineinfile:
+    dest: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/values-no-metrics.yaml"
+    regexp: "^(\\s*)admin.enabled:.*"
+    line: '\1admin.enabled: "true"'
+    backrefs: true
+    state: present
+  delegate_to: localhost
 
 - name: Deploy ArgoCD
   shell: |
     helm dependency build &&
-    helm template "{{ apps.argocd.name }}" --include-crds --namespace "{{ apps.argocd.namespace }}" . > resources/all.yaml &&
+    helm template "{{ apps.argocd.name }}" --include-crds --namespace "{{ apps.argocd.namespace }}" --values=values-no-metrics.yaml . > resources/all.yaml &&
     kubectl apply -k .
   args:
     chdir: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/"
@@ -32,5 +39,37 @@
 - name: Add calico deploy to argocd
   k8s:
     state: present
-    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/calico.yaml"
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/calico/project/calico.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/calico/application/calico.yaml'
+  delegate_to: localhost
+
+- name: Port-fordward argocd
+  shell: kubectl port-forward -n argocd service/argocd-server 8443:443 > /dev/null 2>&1 &
+  delegate_to: localhost
+
+- name: Login on argocd with admin
+  shell: "argocd login localhost:8443 --insecure --username admin --password `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=\"{.data.password}\" | base64 -d`"
+  register: port_forward_process
+  delegate_to: localhost
+
+- name: Set login to user {{ apps.argocd.users.fly.name }}
+  shell: "argocd account update-password --insecure --current-password `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=\"{.data.password}\" | base64 -d` --account {{ apps.argocd.users.fly.name }} --new-password '{{ apps.argocd.users.fly.password }}'"
+  register: port_forward_process
+  delegate_to: localhost
+
+- name: Set login to user {{ apps.argocd.users.argocd.name }}
+  shell: "argocd account update-password --insecure --current-password `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=\"{.data.password}\" | base64 -d` --account {{ apps.argocd.users.argocd.name }} --new-password '{{ apps.argocd.users.argocd.password }}'"
+  register: port_forward_process
+  delegate_to: localhost
+
+- name: Get kubectl port-forward process
+  shell: "ps -ef | grep -v grep | grep -w 'kubectl port-forward -n argocd service/argocd-server 8443:443' | awk '{print $2}'"
+  register: port_forward_process
+  delegate_to: localhost
+
+- name: Kill kubectl port-forward process
+  shell: "kill -9 {{ item }}"
+  with_items: "{{ port_forward_process.stdout_lines }}"
   delegate_to: localhost

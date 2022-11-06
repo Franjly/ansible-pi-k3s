@@ -2,7 +2,10 @@
 - name: Deploy metallb
   k8s:
     state: present
-    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/metallb.yaml"
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/metallb-system/project/metallb-system.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/metallb-system/application/metallb-system.yaml'
   delegate_to: localhost
 
 - name: Pause 30 seconds to deploy metallb

@@ -2,7 +2,10 @@
 - name: Deploy gitea
   k8s:
     state: present
-    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/gitea.yaml"
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/platform/gitea/project/gitea.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/platform/gitea/application/gitea.yaml'
   delegate_to: localhost
 
 - name: Pause 30 seconds to deploy gitea

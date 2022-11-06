@@ -1,0 +1,21 @@
+---
+- name: Deploy trivy-system
+  k8s:
+    state: present
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/platform/trivy-system/project/trivy-system.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/platform/trivy-system/application/trivy-system.yaml'
+  delegate_to: localhost
+
+- name: Pause 30 seconds to deploy trivy-system
+  pause:
+    seconds: 30
+
+- name: Wait for trivy-system pods to be running
+  shell: kubectl get pods -n trivy-system -o json
+  register: kubectl_get_pods_trivy_system
+  until: kubectl_get_pods_trivy_system.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delegate_to: localhost
+  retries: 10
+  delay: 30

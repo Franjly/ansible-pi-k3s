@@ -1,8 +1,111 @@
 ---
-- name: Deploy radarr
+- name: Create "{{ apps.arr.namespace }}" namespace
+  k8s:
+    name: "{{ apps.arr.namespace }}"
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+
+- name: Restore bazarr volume backup from longhorn
+  uri:
+    url: https://longhorn.local.tecno-fly.com/v1/volumes
+    method: POST
+    body: '{"name":"{{ apps.arr.bazarr.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ apps.arr.bazarr.backup_id }}&volume={{ apps.arr.bazarr.volume_name }}","staleReplicaTimeout":20}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Pause 1 minutes to restore bazarr volume backup
+  pause:
+    minutes: 1
+
+- name: Create PV bazarr
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.bazarr.volume_name }}?action=pvCreate"
+    method: POST
+    body: '{"pvName":"{{ apps.arr.bazarr.volume_name }}","fsType":"ext4"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Create PVC bazarr
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.bazarr.volume_name }}?action=pvcCreate"
+    method: POST
+    body: '{"namespace":"{{ apps.arr.namespace }}","pvcName":"{{ apps.arr.bazarr.pvc_name }}"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Restore prowlarr volume backup from longhorn
+  uri:
+    url: https://longhorn.local.tecno-fly.com/v1/volumes
+    method: POST
+    body: '{"name":"{{ apps.arr.prowlarr.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ apps.arr.prowlarr.backup_id }}&volume={{ apps.arr.prowlarr.volume_name }}","staleReplicaTimeout":20}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Pause 1 minutes to restore prowlarr volume backup
+  pause:
+    minutes: 1
+
+- name: Create PV prowlarr
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.prowlarr.volume_name }}?action=pvCreate"
+    method: POST
+    body: '{"pvName":"{{ apps.arr.prowlarr.volume_name }}","fsType":"ext4"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Create PVC prowlarr
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.prowlarr.volume_name }}?action=pvcCreate"
+    method: POST
+    body: '{"namespace":"{{ apps.arr.namespace }}","pvcName":"{{ apps.arr.prowlarr.pvc_name }}"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Restore radarr volume backup from longhorn
+  uri:
+    url: https://longhorn.local.tecno-fly.com/v1/volumes
+    method: POST
+    body: '{"name":"{{ apps.arr.radarr.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ apps.arr.radarr.backup_id }}&volume={{ apps.arr.radarr.volume_name }}","staleReplicaTimeout":20}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Pause 1 minutes to restore radarr volume backup
+  pause:
+    minutes: 1
+
+- name: Create PV radarr
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.radarr.volume_name }}?action=pvCreate"
+    method: POST
+    body: '{"pvName":"{{ apps.arr.radarr.volume_name }}","fsType":"ext4"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Create PVC radarr
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.radarr.volume_name }}?action=pvcCreate"
+    method: POST
+    body: '{"namespace":"{{ apps.arr.namespace }}","pvcName":"{{ apps.arr.radarr.pvc_name }}"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Deploy arr applications
   k8s:
     state: present
-    src: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/apps/arr.yaml"
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/arr/project/arr.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/arr/application/arr.yaml'
   delegate_to: localhost
 
 - name: Pause 30 seconds to deploy arr apps
@@ -14,5 +117,5 @@
   register: kubectl_get_pods_arr
   until: kubectl_get_pods_arr.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
   delegate_to: localhost
-  retries: 10
-  delay: 30
+  retries: 20
+  delay: 60
