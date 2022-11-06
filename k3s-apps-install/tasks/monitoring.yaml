@@ -50,13 +50,13 @@
   pause:
     seconds: 60
 
-- name: Wait for kube-prometheus-stack pods to be running
+- name: Wait for monitoring-system pods to be running
   shell: kubectl get pods -n monitoring-system -o json
   register: kubectl_get_pods_kube_prometheus_stack
   until: kubectl_get_pods_kube_prometheus_stack.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
   delegate_to: localhost
-  retries: 10
-  delay: 30
+  retries: 20
+  delay: 60
 
 - name: Label service kube-prometheus-stack-kube-scheduler
   shell: "kubectl label --overwrite svc kube-prometheus-stack-kube-scheduler -n monitoring-system component=kube-scheduler"
