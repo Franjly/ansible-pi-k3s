@@ -207,6 +207,12 @@ apps:
           35633831633664623539386536626563333734363130353663353538386633653964313162666330
           3237336563343939663337393934393566646662366462633565
 
+  gitea:
+    namespace: gitea
+    volumes:
+      - { pvc_name: data-gitea-0, volume_name: pvc-d09aa599-0fe6-472f-9b5a-8bfb2b2f5c6f, backup_id: backup-181281bdd0f64217 }
+      - { pvc_name: data-gitea-postgresql-0, volume_name: pvc-ba3daa43-f34b-44c8-a46c-1cbdd4cc4b36, backup_id: backup-bd3fb9f3193a4741 }
+
   home_assistant:
     namespace: home-assistant
     volume_name: pvc-870aef2b-6d6f-4a8a-bb10-3907bc68c3b6

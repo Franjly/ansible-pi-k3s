@@ -6,6 +6,10 @@
     state: present
   delegate_to: localhost
 
+- name: Pause 3 minutes before restore vault volume backup
+  pause:
+    minutes: 3
+
 - name: Restore vault volume backup from longhorn
   uri:
     url: https://longhorn.local.tecno-fly.com/v1/volumes

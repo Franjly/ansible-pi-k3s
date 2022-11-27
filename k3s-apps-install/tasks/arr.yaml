@@ -6,98 +6,39 @@
     state: present
   delegate_to: localhost
 
-- name: Restore bazarr volume backup from longhorn
+- name: Restore arr apps volume backup from longhorn
   uri:
     url: https://longhorn.local.tecno-fly.com/v1/volumes
     method: POST
-    body: '{"name":"{{ apps.arr.bazarr.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ apps.arr.bazarr.backup_id }}&volume={{ apps.arr.bazarr.volume_name }}","staleReplicaTimeout":20}'
+    body: '{"name":"{{ item.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ item.backup_id }}&volume={{ item.volume_name }}","staleReplicaTimeout":20}'
     body_format: json
     validate_certs: false
   delegate_to: localhost
+  with_items: "{{ apps.arr.volumes }}"
 
-- name: Pause 1 minutes to restore bazarr volume backup
+- name: Pause 2 minutes to restore bazarr volume backup
   pause:
-    minutes: 1
+    minutes: 2
 
-- name: Create PV bazarr
+- name: Create PV arr apps
   uri:
-    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.bazarr.volume_name }}?action=pvCreate"
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ item.volume_name }}?action=pvCreate"
     method: POST
-    body: '{"pvName":"{{ apps.arr.bazarr.volume_name }}","fsType":"ext4"}'
+    body: '{"pvName":"{{ item.volume_name }}","fsType":"ext4"}'
     body_format: json
     validate_certs: false
   delegate_to: localhost
+  with_items: "{{ apps.arr.volumes }}"
 
-- name: Create PVC bazarr
+- name: Create PVC arr apps
   uri:
-    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.bazarr.volume_name }}?action=pvcCreate"
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ item.volume_name }}?action=pvcCreate"
     method: POST
-    body: '{"namespace":"{{ apps.arr.namespace }}","pvcName":"{{ apps.arr.bazarr.pvc_name }}"}'
+    body: '{"namespace":"{{ apps.arr.namespace }}","pvcName":"{{ item.pvc_name }}"}'
     body_format: json
     validate_certs: false
   delegate_to: localhost
-
-- name: Restore prowlarr volume backup from longhorn
-  uri:
-    url: https://longhorn.local.tecno-fly.com/v1/volumes
-    method: POST
-    body: '{"name":"{{ apps.arr.prowlarr.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ apps.arr.prowlarr.backup_id }}&volume={{ apps.arr.prowlarr.volume_name }}","staleReplicaTimeout":20}'
-    body_format: json
-    validate_certs: false
-  delegate_to: localhost
-
-- name: Pause 1 minutes to restore prowlarr volume backup
-  pause:
-    minutes: 1
-
-- name: Create PV prowlarr
-  uri:
-    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.prowlarr.volume_name }}?action=pvCreate"
-    method: POST
-    body: '{"pvName":"{{ apps.arr.prowlarr.volume_name }}","fsType":"ext4"}'
-    body_format: json
-    validate_certs: false
-  delegate_to: localhost
-
-- name: Create PVC prowlarr
-  uri:
-    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.prowlarr.volume_name }}?action=pvcCreate"
-    method: POST
-    body: '{"namespace":"{{ apps.arr.namespace }}","pvcName":"{{ apps.arr.prowlarr.pvc_name }}"}'
-    body_format: json
-    validate_certs: false
-  delegate_to: localhost
-
-- name: Restore radarr volume backup from longhorn
-  uri:
-    url: https://longhorn.local.tecno-fly.com/v1/volumes
-    method: POST
-    body: '{"name":"{{ apps.arr.radarr.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ apps.arr.radarr.backup_id }}&volume={{ apps.arr.radarr.volume_name }}","staleReplicaTimeout":20}'
-    body_format: json
-    validate_certs: false
-  delegate_to: localhost
-
-- name: Pause 1 minutes to restore radarr volume backup
-  pause:
-    minutes: 1
-
-- name: Create PV radarr
-  uri:
-    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.radarr.volume_name }}?action=pvCreate"
-    method: POST
-    body: '{"pvName":"{{ apps.arr.radarr.volume_name }}","fsType":"ext4"}'
-    body_format: json
-    validate_certs: false
-  delegate_to: localhost
-
-- name: Create PVC radarr
-  uri:
-    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.arr.radarr.volume_name }}?action=pvcCreate"
-    method: POST
-    body: '{"namespace":"{{ apps.arr.namespace }}","pvcName":"{{ apps.arr.radarr.pvc_name }}"}'
-    body_format: json
-    validate_certs: false
-  delegate_to: localhost
+  with_items: "{{ apps.arr.volumes }}"
 
 - name: Deploy arr applications
   k8s:

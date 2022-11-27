@@ -1,4 +1,45 @@
 ---
+- name: Create "{{ apps.gitea.namespace }}" namespace
+  k8s:
+    name: "{{ apps.gitea.namespace }}"
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+
+- name: Restore gitea apps volume backup from longhorn
+  uri:
+    url: https://longhorn.local.tecno-fly.com/v1/volumes
+    method: POST
+    body: '{"name":"{{ item.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ item.backup_id }}&volume={{ item.volume_name }}","staleReplicaTimeout":20}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+  with_items: "{{ apps.gitea.volumes }}"
+
+- name: Pause 2 minutes to restore gitea volume backup
+  pause:
+    minutes: 2
+
+- name: Create PV gitea apps
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ item.volume_name }}?action=pvCreate"
+    method: POST
+    body: '{"pvName":"{{ item.volume_name }}","fsType":"ext4"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+  with_items: "{{ apps.gitea.volumes }}"
+
+- name: Create PVC gitea apps
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ item.volume_name }}?action=pvcCreate"
+    method: POST
+    body: '{"namespace":"{{ apps.gitea.namespace }}","pvcName":"{{ item.pvc_name }}"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+  with_items: "{{ apps.gitea.volumes }}"
+
 - name: Deploy gitea
   k8s:
     state: present
