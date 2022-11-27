@@ -23,9 +23,9 @@
   delegate_to: localhost
       
 - name: Delete default values.yaml file to avoid conflicts
-    file:
-      path: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/values.yaml"
-      state: absent
+  file:
+    path: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/platform/argocd/values.yaml"
+    state: absent
   delegate_to: localhost
   
 - name: Deploy ArgoCD
