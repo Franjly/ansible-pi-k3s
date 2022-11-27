@@ -1,0 +1,62 @@
+---
+- name: Create "{{ apps.calibre.namespace }}" namespace
+  k8s:
+    name: "{{ apps.calibre.namespace }}"
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+
+- name: Restore calibre volume backup from longhorn
+  uri:
+    url: https://longhorn.local.tecno-fly.com/v1/volumes
+    method: POST
+    body: '{"name":"{{ item.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ item.backup_id }}&volume={{ item.volume_name }}","staleReplicaTimeout":20}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+  with_items: "{{ apps.calibre.volumes }}"
+
+- name: Pause 1 minutes to restore calibre volume backup
+  pause:
+    minutes: 1
+
+- name: Create PV Calibre
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ item.volume_name }}?action=pvCreate"
+    method: POST
+    body: '{"pvName":"{{ item.volume_name }}","fsType":"ext4"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+  with_items: "{{ apps.calibre.volumes }}"
+
+- name: Create PVC Calibre
+  uri:
+    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ item.volume_name }}?action=pvcCreate"
+    method: POST
+    body: '{"namespace":"{{ apps.calibre.namespace }}","pvcName":"{{ item.pvc_name }}"}'
+    body_format: json
+    validate_certs: false
+  delegate_to: localhost
+  with_items: "{{ apps.calibre.volumes }}"
+
+- name: Deploy calibre applications
+  k8s:
+    state: present
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/calibre/project/calibre.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/calibre/application/calibre.yaml'
+  delegate_to: localhost
+
+- name: Pause 30 seconds to deploy calibre apps
+  pause:
+    seconds: 30
+
+- name: Wait for calibre pods to be running
+  shell: kubectl get pods -n calibre -o json
+  register: kubectl_get_pods_calibre
+  until: kubectl_get_pods_calibre.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delegate_to: localhost
+  retries: 20
+  delay: 60
