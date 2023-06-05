@@ -37,6 +37,8 @@
   run_once: true
 - include: calibre.yaml
   run_once: true
+- include: cloudflare.yaml
+  run_once: true
 # - include: trivy.yaml
 #   run_once: true
 # - include: kyverno.yaml

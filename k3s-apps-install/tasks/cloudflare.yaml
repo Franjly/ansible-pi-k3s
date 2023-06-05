@@ -1,0 +1,21 @@
+---
+- name: Deploy Cloudflare tunnel
+  k8s:
+    state: present
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/cloudflare/project/cloudflare.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/cloudflare/application/cloudflare.yaml'
+  delegate_to: localhost
+
+- name: Pause 1 minutes to deploy Cloudflare tunnel
+  pause:
+    minutes: 1
+
+- name: Wait for  Cloudflare tunnel pods to be running
+  shell: kubectl get pods -n cloudflare -o json
+  register: kubectl_get_pods_cloudflare
+  until: kubectl_get_pods_cloudflare.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delegate_to: localhost
+  retries: 10
+  delay: 30
