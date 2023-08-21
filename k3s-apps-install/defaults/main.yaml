@@ -44,6 +44,7 @@ apps:
           6463313762303532623630376135396239626364303635633562
 
   longhorn:
+    base_url: https://longhorn.local.tecno-fly.com
     namespace: longhorn-system
     secret:
       AWS_ACCESS_KEY_ID: !vault |

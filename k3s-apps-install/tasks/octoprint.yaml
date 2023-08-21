@@ -10,11 +10,26 @@
   pause:
     minutes: 3
 
+- name: Get list of octoprint volume backups
+  uri:
+    url: "{{ apps.longhorn.base_url }}/v1/backupvolumes/{{ apps.octoprint.volume_name }}?action=backupList"
+    method: POST
+    validate_certs: false
+  register: backup_list
+  retries: 3
+  delay: 30
+  delegate_to: localhost
+  run_once: true
+
+  # Get latest backup
+- set_fact:
+    backup_id: "{{ backup_list | json_query('json.data[*].{created: created, id: id}') | sort(attribute='created') | reverse | json_query('[0].id') }}"
+
 - name: Restore octoprint volume backup from longhorn
   uri:
-    url: https://longhorn.local.tecno-fly.com/v1/volumes
+    url: "{{ apps.longhorn.base_url }}/v1/volumes"
     method: POST
-    body: '{"name":"{{ apps.octoprint.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ apps.octoprint.backup_id }}&volume={{ apps.octoprint.volume_name }}","staleReplicaTimeout":20}'
+    body: '{"name":"{{ apps.octoprint.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ backup_id }}&volume={{ apps.octoprint.volume_name }}","staleReplicaTimeout":20}'
     body_format: json
     validate_certs: false
   retries: 3
@@ -27,7 +42,7 @@
 
 - name: Create PV octoprint
   uri:
-    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.octoprint.volume_name }}?action=pvCreate"
+    url: "{{ apps.longhorn.base_url }}/v1/volumes/{{ apps.octoprint.volume_name }}?action=pvCreate"
     method: POST
     body: '{"pvName":"{{ apps.octoprint.volume_name }}","fsType":"ext4"}'
     body_format: json
@@ -36,7 +51,7 @@
 
 - name: Create PVC octoprint
   uri:
-    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.octoprint.volume_name }}?action=pvcCreate"
+    url: "{{ apps.longhorn.base_url }}/v1/volumes/{{ apps.octoprint.volume_name }}?action=pvcCreate"
     method: POST
     body: '{"namespace":"{{ apps.octoprint.namespace }}","pvcName":"{{ apps.octoprint.pvc_name }}"}'
     body_format: json
