@@ -247,3 +247,8 @@ apps:
     volumes:
       - { pvc_name: calibre-server-config, volume_name: pvc-74302bbc-fd16-4d27-9b6c-812a2382b723, backup_id: backup-2af56ecf9f124b97 }
       - { pvc_name: calibre-web-config, volume_name: pvc-ddb3dafd-dc63-48ca-8e17-4f7fd50a579f, backup_id: backup-16c7137bacfa410a }
+
+  octoprint:
+    namespace: octoprint
+    volume_name: pvc-383bd936-0727-4ae7-ba07-b3a9470725f2
+    pvc_name: octoprint-data
