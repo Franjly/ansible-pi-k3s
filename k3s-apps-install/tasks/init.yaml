@@ -3,10 +3,14 @@
   git:
     repo: "{{ apps.homelab_repo }}"
     dest: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s"
+    version: main
+    update: yes
   delegate_to: localhost
 
 - name: Git checkout argocd-homelab repo
   git:
     repo: "{{ apps.argocd_homelab_repo }}"
     dest: "{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s"
+    version: main
+    update: yes
   delegate_to: localhost
