@@ -29,7 +29,7 @@
   retries: 5
   delay: 30
   register: result
-  until: result.rc == 0
+  until: result.rc is defined and result.rc == 0
 
 - name: Get kubectl port-forward process
   shell: "ps -ef | grep -v grep | grep -w 'kubectl port-forward -n argocd service/argocd-server 8443:443' | awk '{print $2}'"
