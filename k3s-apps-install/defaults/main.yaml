@@ -243,7 +243,7 @@ apps:
 
   dashboards:
     namespace: dashboards
-    volumes:
+    # volumes:
       # - { pvc_name: hajimari-data, volume_name: pvc-7c880796-0b94-4921-83d1-7e7a953d4f08 }
       # - { pvc_name: organizr-config, volume_name: pvc-2f30b1d9-5820-404a-8a01-5e6f3f1c8e18 }
 

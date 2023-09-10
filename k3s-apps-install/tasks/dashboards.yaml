@@ -15,16 +15,19 @@
   loop: "{{ apps.dashboards.volumes }}"
   loop_control:
     loop_var: item
+  when: apps.dashboards.volumes is defined
   delegate_to: localhost 
 
 - name: Initialize list with recent backupsId
   set_fact:
     recent_backup_ids: []
+  when: apps.dashboards.volumes is defined
   delegate_to: localhost
   
 - name: Filter elements data
   set_fact:
     filtered_results: "{{ backup_list.results | selectattr('json.data') | list }}"
+  when: apps.dashboards.volumes is defined
   delegate_to: localhost
   
 - name: Create list with recents backupID for al the dashboards apps
@@ -33,12 +36,13 @@
   loop: "{{ filtered_results }}"
   loop_control:
     loop_var: item
-  when: item.changed == false and item.json.data is defined
+  when: apps.dashboards.volumes is defined and item.changed == false and item.json.data is defined
   delegate_to: localhost
   
 - name: Show recent_backup_ids
   debug:
     var: recent_backup_ids
+  when: apps.dashboards.volumes is defined
   delegate_to: localhost
   
 - name: Restore each dashboards app volume backup
@@ -52,11 +56,13 @@
   loop_control:
     loop_var: item
     index_var: index
+  when: apps.dashboards.volumes is defined
   delegate_to: localhost
 
 - name: Pause 1 minutes to restore dashboards volume backup
   pause:
     minutes: 1
+  when: apps.dashboards.volumes is defined
   delegate_to: localhost
   
 - name: Create PV dashboards
@@ -67,6 +73,7 @@
     body_format: json
     validate_certs: false
   with_items: "{{ apps.dashboards.volumes }}"
+  when: apps.dashboards.volumes is defined
   delegate_to: localhost
 
 - name: Create PVC dashboards
@@ -77,6 +84,7 @@
     body_format: json
     validate_certs: false
   with_items: "{{ apps.dashboards.volumes }}"
+  when: apps.dashboards.volumes is defined
   delegate_to: localhost
   
 - name: Deploy dashboards
