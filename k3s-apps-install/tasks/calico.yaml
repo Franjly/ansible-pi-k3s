@@ -9,7 +9,8 @@
 - name: Add calico chart repo
   kubernetes.core.helm_repository:
     name: projectcalico
-    repo_url: "https://projectcalico.docs.tigera.io/charts"
+    repo_url: "https://docs.tigera.io/calico/charts"
+    force_update: true
   delegate_to: localhost
 
 - name: Deploy Calico
