@@ -6,20 +6,59 @@
     state: present
   delegate_to: localhost
 
-- name: Restore gitea apps volume backup from longhorn
+- name: Get list of gitea apps volume backups
   uri:
-    url: https://longhorn.local.tecno-fly.com/v1/volumes
+    url: "{{ apps.longhorn.base_url }}/v1/backupvolumes/{{ item.volume_name }}?action=backupList"
     method: POST
-    body: '{"name":"{{ item.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ item.backup_id }}&volume={{ item.volume_name }}","staleReplicaTimeout":20}'
+    validate_certs: false
+  register: backup_list
+  loop: "{{ apps.gitea.volumes }}"
+  loop_control:
+    loop_var: item
+  delegate_to: localhost
+  
+- name: Initialize list with recent backupsId
+  set_fact:
+    recent_backup_ids: []
+  delegate_to: localhost
+  
+- name: Filter elements data
+  set_fact:
+    filtered_results: "{{ backup_list.results | selectattr('json.data') | list }}"
+  delegate_to: localhost
+  
+- name: Create list with recents backupID for al the gitea apps
+  set_fact:
+    recent_backup_ids: "{{ recent_backup_ids + [item | json_query('json.data[*].{created: created, id: id}') | sort(attribute='created') | reverse | json_query('[0].id')] }}"
+  loop: "{{ filtered_results }}"
+  loop_control:
+    loop_var: item
+  when: item.changed == false and item.json.data is defined
+  delegate_to: localhost
+  
+- name: Show recent_backup_ids
+  debug:
+    var: recent_backup_ids
+  delegate_to: localhost
+  
+- name: Restore each gitea app volume backup
+  uri:
+    url: "{{ apps.longhorn.base_url }}/v1/volumes"
+    method: POST
+    body: '{"name":"{{ item.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ recent_backup_ids[index] }}&volume={{ item.volume_name }}","staleReplicaTimeout":20}'
     body_format: json
     validate_certs: false
+  loop: "{{ apps.gitea.volumes }}"
+  loop_control:
+    loop_var: item
+    index_var: index
   delegate_to: localhost
-  with_items: "{{ apps.gitea.volumes }}"
 
 - name: Pause 2 minutes to restore gitea volume backup
   pause:
     minutes: 2
-
+  delegate_to: localhost
+  
 - name: Create PV gitea apps
   uri:
     url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ item.volume_name }}?action=pvCreate"
@@ -27,9 +66,9 @@
     body: '{"pvName":"{{ item.volume_name }}","fsType":"ext4"}'
     body_format: json
     validate_certs: false
-  delegate_to: localhost
   with_items: "{{ apps.gitea.volumes }}"
-
+  delegate_to: localhost
+  
 - name: Create PVC gitea apps
   uri:
     url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ item.volume_name }}?action=pvcCreate"
@@ -37,9 +76,9 @@
     body: '{"namespace":"{{ apps.gitea.namespace }}","pvcName":"{{ item.pvc_name }}"}'
     body_format: json
     validate_certs: false
-  delegate_to: localhost
   with_items: "{{ apps.gitea.volumes }}"
-
+  delegate_to: localhost
+  
 - name: Deploy gitea
   k8s:
     state: present
@@ -48,15 +87,16 @@
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/platform/gitea/project/gitea.yaml'
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/platform/gitea/application/gitea.yaml'
   delegate_to: localhost
-
+  
 - name: Pause 30 seconds to deploy gitea
   pause:
     seconds: 30
-
+  delegate_to: localhost
+  
 - name: Wait for gitea pods to be running
   shell: kubectl get pods -n gitea -o json
   register: kubectl_get_pods_gitea
   until: kubectl_get_pods_gitea.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
-  delegate_to: localhost
   retries: 10
   delay: 30
+  delegate_to: localhost

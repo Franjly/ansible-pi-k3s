@@ -6,29 +6,68 @@
     state: present
   delegate_to: localhost
 
-- name: Restore arr apps volume backup from longhorn
+- name: Get list of arr apps volume backups
   uri:
-    url: https://longhorn.local.tecno-fly.com/v1/volumes
+    url: "{{ apps.longhorn.base_url }}/v1/backupvolumes/{{ item.volume_name }}?action=backupList"
     method: POST
-    body: '{"name":"{{ item.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ item.backup_id }}&volume={{ item.volume_name }}","staleReplicaTimeout":20}'
+    validate_certs: false
+  register: backup_list
+  loop: "{{ apps.arr.volumes }}"
+  loop_control:
+    loop_var: item
+  delegate_to: localhost
+  
+- name: Initialize list with recent backups ID
+  set_fact:
+    recent_backup_ids: []
+  delegate_to: localhost
+
+- name: Filter elements data
+  set_fact:
+    filtered_results: "{{ backup_list.results | selectattr('json.data') | list }}"
+  delegate_to: localhost
+
+- name: Create list with recents backupID for al the arr apps
+  set_fact:
+    recent_backup_ids: "{{ recent_backup_ids + [item | json_query('json.data[*].{created: created, id: id}') | sort(attribute='created') | reverse | json_query('[0].id')] }}"
+  loop: "{{ filtered_results }}"
+  loop_control:
+    loop_var: item
+  when: item.changed == false and item.json.data is defined
+  delegate_to: localhost
+
+- name: Show recent_backup_ids
+  debug:
+    var: recent_backup_ids
+  delegate_to: localhost
+
+- name: Restore each arr app volume backup
+  uri:
+    url: "{{ apps.longhorn.base_url }}/v1/volumes"
+    method: POST
+    body: '{"name":"{{ item.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ recent_backup_ids[index] }}&volume={{ item.volume_name }}","staleReplicaTimeout":20}'
     body_format: json
     validate_certs: false
+  loop: "{{ apps.arr.volumes }}"
+  loop_control:
+    loop_var: item
+    index_var: index
   delegate_to: localhost
-  with_items: "{{ apps.arr.volumes }}"
 
-- name: Pause 2 minutes to restore bazarr volume backup
+- name: Pause 10 minutes to restore arr volumes backups
   pause:
-    minutes: 2
+    minutes: 10
+  delegate_to: localhost
 
 - name: Create PV arr apps
   uri:
-    url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ item.volume_name }}?action=pvCreate"
+    url: "{{ apps.longhorn.base_url }}/v1/volumes/{{ item.volume_name }}?action=pvCreate"
     method: POST
     body: '{"pvName":"{{ item.volume_name }}","fsType":"ext4"}'
     body_format: json
     validate_certs: false
-  delegate_to: localhost
   with_items: "{{ apps.arr.volumes }}"
+  delegate_to: localhost
 
 - name: Create PVC arr apps
   uri:
@@ -37,8 +76,8 @@
     body: '{"namespace":"{{ apps.arr.namespace }}","pvcName":"{{ item.pvc_name }}"}'
     body_format: json
     validate_certs: false
-  delegate_to: localhost
   with_items: "{{ apps.arr.volumes }}"
+  delegate_to: localhost
 
 - name: Deploy arr applications
   k8s:
@@ -48,15 +87,16 @@
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/arr/project/arr.yaml'
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/arr/application/arr.yaml'
   delegate_to: localhost
-
+  
 - name: Pause 30 seconds to deploy arr apps
   pause:
     seconds: 30
+  delegate_to: localhost
 
 - name: Wait for arr pods to be running
   shell: kubectl get pods -n arr -o json
   register: kubectl_get_pods_arr
   until: kubectl_get_pods_arr.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
-  delegate_to: localhost
   retries: 20
   delay: 60
+  delegate_to: localhost

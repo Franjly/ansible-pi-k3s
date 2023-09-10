@@ -1,4 +1,6 @@
 ---
+- include: clean.yaml
+  run_once: true
 - include: init.yaml
   run_once: true
 - include: calico.yaml
@@ -15,6 +17,8 @@
   run_once: true
 - include: vault.yaml
   run_once: true
+- include: nfs-provisioner.yaml
+  run_once: true
 - include: monitoring.yaml
   run_once: true
 - include: cert-manager.yaml
@@ -27,18 +31,20 @@
   run_once: true
 - include: external-endpoints.yaml
   run_once: true
-- include: gitea.yaml
-  run_once: true
-- include: nfs-provisioner.yaml
-  run_once: true
 - include: arr.yaml
   run_once: true
 - include: home-assistant.yaml
   run_once: true
-- include: calibre.yaml
+- include: octoprint.yaml
   run_once: true
 - include: cloudflare.yaml
   run_once: true
+- include: pod-info.yaml
+  run_once: true
+# - include: calibre.yaml
+#   run_once: true
+# - include: gitea.yaml
+#   run_once: true
 # - include: trivy.yaml
 #   run_once: true
 # - include: kyverno.yaml

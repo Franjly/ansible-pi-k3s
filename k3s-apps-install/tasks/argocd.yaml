@@ -58,6 +58,14 @@
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/calico/application/calico.yaml'
   delegate_to: localhost
 
+- name: Download & install ArgoCD CLI
+  become: true
+  get_url:
+    url: "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64"
+    dest: /usr/local/bin/argocd
+    mode: '0755'
+  delegate_to: localhost
+
 - name: Port-fordward argocd
   shell: kubectl port-forward -n argocd service/argocd-server 8443:443 > /dev/null 2>&1 &
   delegate_to: localhost

@@ -180,8 +180,14 @@ apps:
   vault:
     namespace: vault
     volume_name: pvc-63203734-12c1-459a-807e-577562c9eebf
-    backup_id: backup-4a0199c491cc4ad3
     pvc_name: data-vault-0
+    token: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          61316234616433623333343734306532303163386631383363323033393630643061323839353635
+          3465343231646365316438366534623262626264333138330a326534383430396261306434383062
+          34333532353663643061623330663536373435333030363332323439373464383531383865643530
+          3465306630353766660a646232663162326663363233643961303436393165323731396535323033
+          65333832316464646537393033613162633433353832353838666261616431636566
     unseal_keys:
       - !vault |
           $ANSIBLE_VAULT;1.1;AES256
@@ -211,45 +217,46 @@ apps:
   gitea:
     namespace: gitea
     volumes:
-      - { pvc_name: data-gitea-0, volume_name: pvc-d09aa599-0fe6-472f-9b5a-8bfb2b2f5c6f, backup_id: backup-181281bdd0f64217 }
-      - { pvc_name: data-gitea-postgresql-0, volume_name: pvc-ba3daa43-f34b-44c8-a46c-1cbdd4cc4b36, backup_id: backup-bd3fb9f3193a4741 }
+      - { pvc_name: data-gitea-0, volume_name: pvc-d09aa599-0fe6-472f-9b5a-8bfb2b2f5c6f }
+      - { pvc_name: data-gitea-postgresql-0, volume_name: pvc-ba3daa43-f34b-44c8-a46c-1cbdd4cc4b36 }
 
   home_assistant:
     namespace: home-assistant
     volume_name: pvc-870aef2b-6d6f-4a8a-bb10-3907bc68c3b6
-    backup_id: backup-e8f4090b83c842ff
     pvc_name: home-assistant-config
   
   monitoring_system:
     namespace: monitoring-system
     uptime_kuma:
       volume_name: pvc-9e9344e3-0f32-46d8-a7ad-88d4ab54bcda
-      backup_id: backup-86f7c1a6a1f149f1
       pvc_name: uptime-kuma-data
 
   arr:
     namespace: arr
     volumes:
-      - { pvc_name: bazarr-config, volume_name: pvc-97ed941d-150a-4070-8c73-3dcebf361d08, backup_id: backup-34affffe9fd04d07 }
-      - { pvc_name: prowlarr-config, volume_name: pvc-7898ce03-dbda-4f06-9a28-3643b5d156ec, backup_id: backup-0d499d02b2554491 }
-      - { pvc_name: radarr-config, volume_name: pvc-052cd1c6-de01-489a-bea0-67e40996bbb1, backup_id: backup-4c13e379c2814925 }
-      - { pvc_name: readarr-config, volume_name: pvc-aa730566-ffd3-472e-97e3-9fc5a52fb09b, backup_id: backup-d05be034d5304761 }
-      - { pvc_name: lidarr-config, volume_name: pvc-ad0daf67-7db4-4dce-b0b6-4ae09c16d838, backup_id: backup-3cd2c66ddf2c4114 }
-      - { pvc_name: sonarr-config, volume_name: pvc-fba0a404-6594-4db2-b9e4-649405c19748, backup_id: backup-bc6807ff9c3d4e64 }
+      - { pvc_name: bazarr-config, volume_name: pvc-97ed941d-150a-4070-8c73-3dcebf361d08 }
+      - { pvc_name: prowlarr-config, volume_name: pvc-7898ce03-dbda-4f06-9a28-3643b5d156ec }
+      - { pvc_name: radarr-config, volume_name: pvc-052cd1c6-de01-489a-bea0-67e40996bbb1 }
+      - { pvc_name: readarr-config, volume_name: pvc-aa730566-ffd3-472e-97e3-9fc5a52fb09b }
+      - { pvc_name: lidarr-config, volume_name: pvc-ad0daf67-7db4-4dce-b0b6-4ae09c16d838 }
+      - { pvc_name: sonarr-config, volume_name: pvc-fba0a404-6594-4db2-b9e4-649405c19748 }
 
   dashboards:
     namespace: dashboards
     volumes:
-      - { pvc_name: hajimari-data, volume_name: pvc-7c880796-0b94-4921-83d1-7e7a953d4f08, backup_id: backup-f69e457ffdcf4298 }
-      # - { pvc_name: organizr-config, volume_name: pvc-2f30b1d9-5820-404a-8a01-5e6f3f1c8e18, backup_id: backup-681738933d2f4fc0 }
+      # - { pvc_name: hajimari-data, volume_name: pvc-7c880796-0b94-4921-83d1-7e7a953d4f08 }
+      # - { pvc_name: organizr-config, volume_name: pvc-2f30b1d9-5820-404a-8a01-5e6f3f1c8e18 }
 
   calibre:
     namespace: calibre
     volumes:
-      - { pvc_name: calibre-server-config, volume_name: pvc-74302bbc-fd16-4d27-9b6c-812a2382b723, backup_id: backup-2af56ecf9f124b97 }
-      - { pvc_name: calibre-web-config, volume_name: pvc-ddb3dafd-dc63-48ca-8e17-4f7fd50a579f, backup_id: backup-16c7137bacfa410a }
+      - { pvc_name: calibre-server-config, volume_name: pvc-74302bbc-fd16-4d27-9b6c-812a2382b723 }
+      - { pvc_name: calibre-web-config, volume_name: pvc-ddb3dafd-dc63-48ca-8e17-4f7fd50a579f }
 
   octoprint:
     namespace: octoprint
     volume_name: pvc-383bd936-0727-4ae7-ba07-b3a9470725f2
     pvc_name: octoprint-data
+  
+  pod_info:
+    namespace: pod-info

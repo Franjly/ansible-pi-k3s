@@ -1,0 +1,42 @@
+---
+- name: Pause 3 minutes before re-sync argocd
+  pause:
+    minutes: 3
+  delegate_to: localhost
+
+- name: Port-fordward argocd
+  shell: kubectl port-forward -n argocd service/argocd-server 8443:443 > /dev/null 2>&1 &
+  delegate_to: localhost
+
+- name: Pause 30 seconds
+  pause:
+    seconds: 30
+  delegate_to: localhost
+
+- name: Login on argocd with admin
+  shell: "argocd login localhost:8443 --insecure --username {{ apps.argocd.users.fly.name }} --password {{ apps.argocd.users.fly.password | quote }}"
+  delegate_to: localhost
+  retries: 5
+  delay: 30
+  register: result
+  until: result.rc == 0
+
+- name: Sync argocd
+  shell: "argocd app sync argocd"
+  async: 300
+  poll: 30
+  delegate_to: localhost
+  retries: 5
+  delay: 30
+  register: result
+  until: result.rc == 0
+
+- name: Get kubectl port-forward process
+  shell: "ps -ef | grep -v grep | grep -w 'kubectl port-forward -n argocd service/argocd-server 8443:443' | awk '{print $2}'"
+  register: port_forward_process
+  delegate_to: localhost
+
+- name: Kill kubectl port-forward process
+  shell: "kill -9 {{ item }}"
+  with_items: "{{ port_forward_process.stdout_lines }}"
+  delegate_to: localhost

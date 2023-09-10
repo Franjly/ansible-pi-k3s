@@ -6,4 +6,5 @@
   with_items:
     - '{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s'
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s'
+    - '{{playbook_dir}}/k3s-apps-install/files/longhorn-backup-target-credential-secret.yaml'
   delegate_to: localhost

@@ -1,8 +1,8 @@
 ---
 - name: Install k3s workers
   shell: curl -sfL https://get.k3s.io | sh -
-  args:
-    warn: false
+  # args:
+  #   warn: false
   environment:
     INSTALL_K3S_VERSION: '{{ k3s_version }}'
     INSTALL_K3S_CHANNEL: '{{ k3s_channel }}'

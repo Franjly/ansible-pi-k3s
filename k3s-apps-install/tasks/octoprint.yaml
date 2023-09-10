@@ -16,8 +16,6 @@
     method: POST
     validate_certs: false
   register: backup_list
-  retries: 3
-  delay: 30
   delegate_to: localhost
   run_once: true
 
@@ -32,8 +30,6 @@
     body: '{"name":"{{ apps.octoprint.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ backup_id }}&volume={{ apps.octoprint.volume_name }}","staleReplicaTimeout":20}'
     body_format: json
     validate_certs: false
-  retries: 3
-  delay: 30
   delegate_to: localhost
 
 - name: Pause 1 minutes to restore octoprint volume backup

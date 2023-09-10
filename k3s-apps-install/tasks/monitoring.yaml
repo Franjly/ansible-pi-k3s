@@ -6,11 +6,23 @@
     state: present
   delegate_to: localhost
 
+- name: Get list of uptime-kuma volume backups
+  uri:
+    url: "{{ apps.longhorn.base_url }}/v1/backupvolumes/{{ apps.monitoring_system.uptime_kuma.volume_name }}?action=backupList"
+    method: POST
+    validate_certs: false
+  register: backup_list
+  delegate_to: localhost
+
+  # Get latest backup
+- set_fact:
+    backup_id: "{{ backup_list | json_query('json.data[*].{created: created, id: id}') | sort(attribute='created') | reverse | json_query('[0].id') }}"
+
 - name: Restore uptime-kuma volume backup from longhorn
   uri:
-    url: https://longhorn.local.tecno-fly.com/v1/volumes
+    url: "{{ apps.longhorn.base_url }}/v1/volumes"
     method: POST
-    body: '{"name":"{{ apps.monitoring_system.uptime_kuma.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ apps.monitoring_system.uptime_kuma.backup_id }}&volume={{ apps.monitoring_system.uptime_kuma.volume_name }}","staleReplicaTimeout":20}'
+    body: '{"name":"{{ apps.monitoring_system.uptime_kuma.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ backup_id }}&volume={{ apps.monitoring_system.uptime_kuma.volume_name }}","staleReplicaTimeout":20}'
     body_format: json
     validate_certs: false
   delegate_to: localhost
@@ -18,7 +30,8 @@
 - name: Pause 1 minutes to restore uptime-kuma volume backup
   pause:
     minutes: 1
-
+  delegate_to: localhost
+  
 - name: Create PV uptime-kuma
   uri:
     url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.monitoring_system.uptime_kuma.volume_name }}?action=pvCreate"
@@ -27,7 +40,7 @@
     body_format: json
     validate_certs: false
   delegate_to: localhost
-
+  
 - name: Create PVC uptime-kuma
   uri:
     url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.monitoring_system.uptime_kuma.volume_name }}?action=pvcCreate"
@@ -36,7 +49,7 @@
     body_format: json
     validate_certs: false
   delegate_to: localhost
-
+  
 - name: Deploy monitoring-system
   k8s:
     state: present
@@ -45,11 +58,12 @@
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/monitoring-system/project/monitoring-system.yaml'
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/monitoring-system/application/monitoring-system.yaml'
   delegate_to: localhost
-
+  
 - name: Pause 60 seconds to deploy kube-prometheus-stack
   pause:
     seconds: 60
-
+  delegate_to: localhost
+  
 - name: Wait for monitoring-system pods to be running
   shell: kubectl get pods -n monitoring-system -o json
   register: kubectl_get_pods_kube_prometheus_stack
@@ -61,15 +75,15 @@
 - name: Label service kube-prometheus-stack-kube-scheduler
   shell: "kubectl label --overwrite svc kube-prometheus-stack-kube-scheduler -n monitoring-system component=kube-scheduler"
   delegate_to: localhost
-
+  
 - name: Label service kube-prometheus-stack-kube-controller-manager
   shell: "kubectl label --overwrite svc kube-prometheus-stack-kube-controller-manager -n monitoring-system component=kube-controller-manager"
   delegate_to: localhost
-
+  
 - name: Patch calico FelixConfiguration to activate metrics
   shell: "kubectl patch felixconfiguration default --type merge --patch '{\"spec\":{\"prometheusMetricsEnabled\": true}}'"
   delegate_to: localhost
-
+  
 - name: Deploy calico-metrics
   k8s:
     state: present
@@ -78,7 +92,7 @@
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/calico-metrics/project/calico-metrics.yaml'
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/system/calico-metrics/application/calico-metrics.yaml'
   delegate_to: localhost
-
+  
 - name: Restore longhorn kustomization file
   lineinfile:
     dest: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/system/longhorn-system/kustomization.yaml"
@@ -89,7 +103,7 @@
     - '- ./resources/service-monitor.yaml'
     - '- ./resources/prometheus-rules.yaml'
   delegate_to: localhost
-
+  
 - name: Commit longhorn changes to repository
   shell: |
     git add kustomization.yaml &&
@@ -99,7 +113,7 @@
     chdir: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/system/longhorn-system"
   ignore_errors: true
   delegate_to: localhost
-
+  
 - name: Enable ingress-nginx metrics
   lineinfile:
     dest: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/system/ingress-nginx/values.yaml"
@@ -109,7 +123,7 @@
     backrefs: true
     state: present
   delegate_to: localhost
-
+  
 - name: Enable ingress-nginx metrics
   lineinfile:
     dest: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/system/ingress-nginx/kustomization.yaml"
@@ -119,7 +133,7 @@
   with_items:
     - '- ./resources/prometheus-rules.yaml'
   delegate_to: localhost
-
+  
 - name: Commit ingress-nginx changes to repository
   shell: |
     git add values.yaml &&

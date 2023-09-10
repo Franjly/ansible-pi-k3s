@@ -1,0 +1,28 @@
+---
+- name: Create "{{ apps.pod_info.namespace }}" namespace
+  k8s:
+    name: "{{ apps.pod_info.namespace }}"
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+
+- name: Deploy pod-info
+  k8s:
+    state: present
+    src: "{{ item }}"
+  with_items:
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/pod-info/project/pod-info.yaml'
+    - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/pod-info/application/pod-info.yaml'
+  delegate_to: localhost
+
+- name: Pause 1 minutes to deploy pod-info
+  pause:
+    minutes: 1
+
+- name: Wait for pod-info pod to be running
+  shell: kubectl get pods -n pod-info -o json
+  register: kubectl_get_pods_pod_info
+  until: kubectl_get_pods_pod_info.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delegate_to: localhost
+  retries: 10
+  delay: 30

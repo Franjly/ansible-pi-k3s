@@ -6,11 +6,23 @@
     state: present
   delegate_to: localhost
 
+- name: Get list of home-assistant volume backups
+  uri:
+    url: "{{ apps.longhorn.base_url }}/v1/backupvolumes/{{ apps.home_assistant.volume_name }}?action=backupList"
+    method: POST
+    validate_certs: false
+  register: backup_list
+  delegate_to: localhost
+  
+  # Get latest backup
+- set_fact:
+    backup_id: "{{ backup_list | json_query('json.data[*].{created: created, id: id}') | sort(attribute='created') | reverse | json_query('[0].id') }}"
+
 - name: Restore home-assistant volume backup from longhorn
   uri:
-    url: https://longhorn.local.tecno-fly.com/v1/volumes
+    url: "{{ apps.longhorn.base_url }}/v1/volumes"
     method: POST
-    body: '{"name":"{{ apps.home_assistant.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ apps.home_assistant.backup_id }}&volume={{ apps.home_assistant.volume_name }}","staleReplicaTimeout":20}'
+    body: '{"name":"{{ apps.home_assistant.volume_name }}","numberOfReplicas":3,"accessMode":"rwo","encrypted":false,"nodeSelector":[],"diskSelector":[],"fromBackup":"s3://longhorn-backups@us-east-1/?backup={{ backup_id }}&volume={{ apps.home_assistant.volume_name }}","staleReplicaTimeout":20}'
     body_format: json
     validate_certs: false
   delegate_to: localhost
@@ -18,7 +30,8 @@
 - name: Pause 1 minutes to restore home-assistant volume backup
   pause:
     minutes: 1
-
+  delegate_to: localhost
+  
 - name: Create PV home-assistant
   uri:
     url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.home_assistant.volume_name }}?action=pvCreate"
@@ -27,7 +40,7 @@
     body_format: json
     validate_certs: false
   delegate_to: localhost
-
+  
 - name: Create PVC home-assistant
   uri:
     url: "https://longhorn.local.tecno-fly.com/v1/volumes/{{ apps.home_assistant.volume_name }}?action=pvcCreate"
@@ -36,7 +49,7 @@
     body_format: json
     validate_certs: false
   delegate_to: localhost
-
+  
 - name: Deploy home-assistant
   k8s:
     state: present
@@ -45,18 +58,17 @@
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/home-assistant/project/home-assistant.yaml'
     - '{{playbook_dir}}/k3s-apps-install/files/argocd-homelab-pi-k3s/apps/home-assistant/application/home-assistant.yaml'
   delegate_to: localhost
-
+  
 - name: Pause 30 seconds to deploy home-assistant
   pause:
     seconds: 30
-
+  delegate_to: localhost
+  
 - name: Wait for home-assistant pods to be running
   shell: kubectl get pods -n home-assistant -o json
   register: kubectl_get_pods_home_assistant
   until: kubectl_get_pods_home_assistant.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
-  delegate_to: localhost
   retries: 20
   delay: 60
-
-
-# kubectl label pvc home-assistant-config -n home-assistant app.kubernetes.io/instance=home-assistant app.kubernetes.io/managed-by=Helm app.kubernetes.io/name=home-assistant app.kubernetes.io/version=2022.5.4 argocd.argoproj.io/instance=home-assistant helm.sh/chart=home-assistant-13.4.2
+  delegate_to: localhost
+  

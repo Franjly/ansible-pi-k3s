@@ -1,4 +1,6 @@
 ---
+- include: argocd-resync.yaml
+
 - name: Deploy Cloudflare tunnel
   k8s:
     state: present

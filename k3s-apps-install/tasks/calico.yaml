@@ -6,6 +6,12 @@
     state: present
   delegate_to: localhost
 
+- name: Add calico chart repo
+  kubernetes.core.helm_repository:
+    name: projectcalico
+    repo_url: "https://projectcalico.docs.tigera.io/charts"
+  delegate_to: localhost
+
 - name: Deploy Calico
   shell: |
     helm dependency build &&
@@ -15,7 +21,7 @@
     chdir: "{{playbook_dir}}/k3s-apps-install/files/homelab-pi-k3s/system/calico/"
   retries: 3
   delay: 5
-  ignore_errors: yes
+  ignore_errors: true
   register: task_result
   until: task_result.rc == 0
   delegate_to: localhost
