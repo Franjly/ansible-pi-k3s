@@ -71,14 +71,6 @@
   delegate_to: localhost
   retries: 20
   delay: 60
-
-- name: Label service kube-prometheus-stack-kube-scheduler
-  shell: "kubectl label --overwrite svc kube-prometheus-stack-kube-scheduler -n monitoring-system component=kube-scheduler"
-  delegate_to: localhost
-  
-- name: Label service kube-prometheus-stack-kube-controller-manager
-  shell: "kubectl label --overwrite svc kube-prometheus-stack-kube-controller-manager -n monitoring-system component=kube-controller-manager"
-  delegate_to: localhost
   
 - name: Patch calico FelixConfiguration to activate metrics
   shell: "kubectl patch felixconfiguration default --type merge --patch '{\"spec\":{\"prometheusMetricsEnabled\": true}}'"
